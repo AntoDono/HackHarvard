@@ -2,7 +2,7 @@
   <div class="w-full flex justify-center px-4">
     <div class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md">
       <!-- Camera View or Preview -->
-      <div class="relative bg-gray-900 flex items-center justify-center" style="aspect-ratio: 3/4; min-height: 500px;">
+      <div class="relative bg-gray-900 flex items-center justify-center" style="aspect-ratio: 3/4; max-height: 60vh; width: 100%;">
         <!-- Video Stream (when camera is active) -->
         <video 
           v-if="!capturedImage && isCameraActive" 
@@ -40,9 +40,9 @@
         />
 
         <!-- Placeholder when camera is not active -->
-        <div v-if="!capturedImage && !isCameraActive" class="text-center text-white">
-          <div class="text-6xl mb-4">📸</div>
-          <p class="text-xl">Click "Start Camera" to begin</p>
+        <div v-if="!capturedImage && !isCameraActive" class="text-center text-white px-4">
+          <div class="text-5xl md:text-6xl mb-4">📸</div>
+          <p class="text-sm md:text-xl">Click "Start Camera" to begin</p>
         </div>
 
         <!-- Camera Overlay Grid -->

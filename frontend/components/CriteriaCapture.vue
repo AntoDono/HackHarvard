@@ -20,7 +20,7 @@
           autoplay 
           playsinline
           muted
-          class="w-full h-full object-contain"
+          class="w-full h-full object-cover"
         ></video>
 
         <!-- Camera Status Indicator -->
