@@ -24,12 +24,24 @@ class DeepfakeDetector:
             models_root: Path to the models directory
             python_exe: Python executable to use for running model demos
         """
+        # Convert to absolute path for reliability
+        models_root = os.path.abspath(models_root)
+        
+        # Check if models directory exists
+        if not os.path.exists(models_root):
+            raise FileNotFoundError(
+                f"Models directory not found at: {models_root}\n"
+                f"Please run 'python download_models.py' to download the required models."
+            )
+        
         self.runner = ModelRunner(models_root=models_root, python_exe=python_exe)
-        self.temp_path = "./temp/delete.jpg"
+        self.models_root = models_root
+        self.temp_dir = os.path.join(os.path.dirname(models_root), "temp")
+        self.temp_path = os.path.join(self.temp_dir, "delete.jpg")
         
     def _prepare_image(self, image_path: str) -> None:
         """Copy image to expected temp location."""
-        os.makedirs("./temp", exist_ok=True)
+        os.makedirs(self.temp_dir, exist_ok=True)
         
         from PIL import Image
         img = Image.open(image_path)
