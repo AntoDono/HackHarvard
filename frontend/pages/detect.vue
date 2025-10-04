@@ -22,7 +22,7 @@
 
         <!-- Camera Section for Initial Detection -->
         <CameraView
-          v-if="!isCapturingCriteria && !showResults && !analysisResult && !showPersonInput && !personResearchResult && !factCheckResult"
+          v-if="!isCapturingCriteria && !showResults && !analysisResult && !showPersonInput && !personResearchResult && !factCheckResult && !deepfakeResult"
           ref="cameraViewRef"
           :captured-image="capturedImage"
           :is-camera-active="isCameraActive"
@@ -88,6 +88,13 @@
           :description="detectionResult?.description"
           :confidence="detectionResult?.confidence"
           @research="handlePersonResearch"
+          @reset="resetCamera"
+        />
+
+        <!-- Deepfake Detection Results Section -->
+        <DeepfakeResults
+          v-if="deepfakeResult"
+          :deepfake-data="deepfakeResult"
           @reset="resetCamera"
         />
 
@@ -291,6 +298,7 @@ const zoomLevel = ref(1)
 const minZoom = ref(1)
 const maxZoom = ref(3)
 const userSpecifiedBrand = ref('')
+const deepfakeResult = ref(null)
 
 const requestCameraPermission = async () => {
   try {
@@ -458,6 +466,7 @@ const resetCamera = () => {
   showPersonInput.value = false
   personResearchResult.value = null
   factCheckResult.value = null
+  deepfakeResult.value = null
   userSpecifiedBrand.value = ''
   stopCamera()
 }
@@ -517,7 +526,16 @@ const analyzeImage = async () => {
       return
     }
     
-    console.log('✅ Item detected:', detectResult)
+    console.log('✅ Detection result:', detectResult)
+    
+    // Check for deepfake detection first
+    if (detectResult.is_deepfake && detectResult.deepfake_detection) {
+      console.log('🤖 DEEPFAKE DETECTED:', detectResult.deepfake_detection.probability)
+      deepfakeResult.value = detectResult.deepfake_detection
+      isProcessing.value = false
+      document.body.style.overflow = 'auto'
+      return
+    }
     
     // Store detection result
     detectionResult.value = detectResult
