@@ -20,353 +20,67 @@
           <p class="text-md text-purple-600 font-semibold">Powered by real-time AI with always up-to-date information</p>
         </div>
 
-        <!-- Camera Section -->
-        <div v-if="!isCapturingCriteria" class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-md mx-auto">
-          <!-- Camera View or Preview -->
-          <div class="relative bg-gray-900 flex items-center justify-center" style="aspect-ratio: 3/4; min-height: 500px;">
-            <!-- Video Stream (when camera is active) -->
-            <video 
-              v-if="!capturedImage && isCameraActive" 
-              ref="videoElement" 
-              autoplay 
-              playsinline
-              muted
-              class="w-full h-full object-cover"
-            ></video>
-
-            <!-- Camera Status Indicator -->
-            <div v-if="isCameraActive && !capturedImage" class="absolute top-4 left-4 flex items-center gap-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-              <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-              LIVE
-            </div>
-
-            <!-- Flip Camera Button -->
-            <button 
-              v-if="isCameraActive && !capturedImage"
-              @click="flipCamera"
-              class="absolute top-4 right-4 bg-white text-gray-800 p-3 rounded-full shadow-lg hover:bg-gray-100 transition-all z-10"
-              title="Flip camera"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </button>
-
-            <!-- Captured Image Preview -->
-            <img 
-              v-if="capturedImage" 
-              :src="capturedImage" 
-              alt="Captured" 
-              class="w-full h-full object-cover"
-            />
-
-            <!-- Detected Item Overlay -->
-            <div v-if="capturedImage && detectedItem" class="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-10">
-              <p class="text-sm font-semibold">✓ Detected:</p>
-              <p class="text-lg font-bold">{{ detectedItem }}</p>
-            </div>
-
-            <!-- Placeholder when camera is not active -->
-            <div v-if="!capturedImage && !isCameraActive" class="text-center text-white">
-              <div class="text-6xl mb-4">📸</div>
-              <p class="text-xl">Click "Start Camera" to begin</p>
-            </div>
-
-            <!-- Camera Overlay Grid -->
-            <div v-if="isCameraActive && !capturedImage" class="absolute inset-0 pointer-events-none">
-              <div class="w-full h-full border-2 border-purple-500 opacity-30"></div>
-              <div class="absolute top-1/2 left-0 right-0 h-0.5 bg-purple-500 opacity-20"></div>
-              <div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-purple-500 opacity-20"></div>
-            </div>
-
-            <!-- Loading Overlay -->
-            <div v-if="isProcessing" class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
-              <div class="text-center text-white">
-                <div class="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
-                <p class="text-xl font-semibold">{{ processingStep }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Canvas for capturing (hidden) -->
-          <canvas ref="canvasElement" class="hidden"></canvas>
-
-          <!-- Controls -->
-          <div class="p-8 bg-gradient-to-br from-purple-50 to-white">
-            <div v-if="!capturedImage" class="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                v-if="!isCameraActive"
-                @click="startCamera"
-                class="px-8 py-4 bg-purple-600 text-white text-lg font-semibold rounded-full hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
-              >
-                📷 Start Camera
-              </button>
-              
-              <button 
-                v-if="isCameraActive"
-                @click="capturePhoto"
-                class="px-8 py-4 bg-purple-600 text-white text-lg font-semibold rounded-full hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg animate-pulse"
-              >
-                📸 Capture Photo
-              </button>
-
-              <button 
-                v-if="isCameraActive"
-                @click="stopCamera"
-                class="px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 text-lg font-semibold rounded-full hover:bg-purple-50 transition-all duration-300"
-              >
-                Stop Camera
-              </button>
-            </div>
-
-            <div v-if="capturedImage" class="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                @click="analyzeImage"
-                :disabled="isProcessing"
-                class="px-8 py-4 bg-purple-600 text-white text-lg font-semibold rounded-full hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                🔍 Analyze Image
-              </button>
-              
-              <button 
-                @click="retakePhoto"
-                class="px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 text-lg font-semibold rounded-full hover:bg-purple-50 transition-all duration-300"
-              >
-                🔄 Retake
-              </button>
-            </div>
-
-            <!-- Upload Option -->
-            <div class="mt-6 text-center">
-              <label class="cursor-pointer inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-semibold">
-                <span>📁 Or upload an image</span>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  @change="handleFileUpload"
-                  class="hidden"
-                />
-              </label>
-            </div>
+        <!-- Detected Item Badge (Outside Canvas) -->
+        <div v-if="capturedImage && detectedItem && !isCapturingCriteria" class="mb-4 mx-auto max-w-md">
+          <div class="bg-green-500 text-white px-6 py-3 rounded-2xl shadow-lg text-center">
+            <p class="text-sm font-semibold">✓ Detected:</p>
+            <p class="text-xl font-bold">{{ detectedItem }}</p>
           </div>
         </div>
+
+        <!-- Camera Section for Initial Detection -->
+        <CameraView
+          v-if="!isCapturingCriteria && !showResults && !analysisResult"
+          ref="cameraViewRef"
+          :captured-image="capturedImage"
+          :is-camera-active="isCameraActive"
+          :is-processing="isProcessing"
+          :processing-step="processingStep"
+          @start-camera="startCamera"
+          @stop-camera="stopCamera"
+          @capture="capturePhoto"
+          @retake="retakePhoto"
+          @analyze="analyzeImage"
+          @flip-camera="flipCamera"
+          @file-upload="handleFileUpload"
+        />
 
         <!-- Criteria Capture Section -->
-        <div v-if="isCapturingCriteria && !analysisResult" class="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-md mx-auto">
-          <!-- Camera View -->
-          <div class="relative bg-gray-900 flex items-center justify-center" style="aspect-ratio: 3/4; min-height: 500px;">
-            <!-- Video Stream -->
-            <video 
-              v-if="isCameraActive" 
-              ref="videoElement" 
-              autoplay 
-              playsinline
-              muted
-              class="w-full h-full object-cover"
-            ></video>
+        <CriteriaCapture
+          v-if="isCapturingCriteria && !analysisResult"
+          ref="criteriaCaptureRef"
+          :current-index="currentCriterionIndex"
+          :total-steps="detectionResult?.location_angle?.length || 0"
+          :current-instruction="detectionResult?.location_angle?.[currentCriterionIndex] || ''"
+          :is-camera-active="isCameraActive"
+          :is-processing="isProcessing"
+          :processing-step="processingStep"
+          @capture="captureCriterionPhoto"
+          @retake-previous="retakeCriterionPhoto"
+          @cancel="resetCamera"
+          @flip-camera="flipCamera"
+        />
 
-            <!-- Camera Status Indicator -->
-            <div v-if="isCameraActive" class="absolute top-4 left-4 flex items-center gap-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold z-10">
-              <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-              LIVE
-            </div>
-
-            <!-- Flip Camera Button -->
-            <button 
-              v-if="isCameraActive"
-              @click="flipCamera"
-              class="absolute top-4 right-16 bg-white text-gray-800 p-2 rounded-full shadow-lg hover:bg-gray-100 transition-all z-10"
-              title="Flip camera"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </button>
-
-            <!-- Current Criterion Overlay -->
-            <div class="absolute top-4 right-4 bg-purple-600 text-white px-4 py-3 rounded-lg shadow-lg z-10">
-              <p class="text-xs font-semibold">Criterion {{ currentCriterionIndex + 1 }} of {{ detectionResult.location_angle.length }}</p>
-            </div>
-
-            <!-- Camera Overlay Grid -->
-            <div v-if="isCameraActive" class="absolute inset-0 pointer-events-none">
-              <div class="w-full h-full border-2 border-purple-500 opacity-30"></div>
-              <div class="absolute top-1/2 left-0 right-0 h-0.5 bg-purple-500 opacity-20"></div>
-              <div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-purple-500 opacity-20"></div>
-            </div>
-
-            <!-- Loading Overlay -->
-            <div v-if="isProcessing" class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
-              <div class="text-center text-white">
-                <div class="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-4"></div>
-                <p class="text-xl font-semibold">{{ processingStep }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Instructions and Controls -->
-          <div class="p-8 bg-gradient-to-br from-purple-50 to-white">
-            <!-- Current Criterion Instructions -->
-            <div class="mb-6 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border-l-4 border-purple-500">
-              <p class="text-lg font-semibold text-gray-900 mb-2">
-                📷 {{ detectionResult.location_angle[currentCriterionIndex] }}
-              </p>
-              <p class="text-sm text-gray-600">Position your item according to this instruction and capture a clear photo.</p>
-            </div>
-
-            <!-- Progress Indicators -->
-            <div class="mb-6 flex gap-2 justify-center flex-wrap">
-              <div 
-                v-for="(_, index) in detectionResult.location_angle" 
-                :key="index"
-                :class="[
-                  'w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all',
-                  index < currentCriterionIndex ? 'bg-green-500 text-white' : 
-                  index === currentCriterionIndex ? 'bg-purple-600 text-white animate-pulse' : 
-                  'bg-gray-200 text-gray-400'
-                ]"
-              >
-                {{ index + 1 }}
-              </div>
-            </div>
-
-            <!-- Camera Controls for Criteria -->
-            <div class="flex gap-4 justify-center flex-wrap">
-              <button 
-                v-if="isCameraActive"
-                @click="captureCriterionPhoto"
-                class="px-8 py-4 bg-purple-600 text-white text-lg font-semibold rounded-full hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
-              >
-                📸 Capture
-              </button>
-              
-              <button 
-                v-if="currentCriterionIndex > 0"
-                @click="retakeCriterionPhoto"
-                class="px-8 py-4 bg-yellow-500 text-white text-lg font-semibold rounded-full hover:bg-yellow-600 transition-all duration-300"
-              >
-                ↩️ Retake Previous
-              </button>
-
-              <button 
-                @click="resetCamera"
-                class="px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 text-lg font-semibold rounded-full hover:bg-purple-50 transition-all duration-300"
-              >
-                ✕ Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+        <!-- Canvas for capturing (hidden, shared between both camera modes) -->
+        <canvas ref="canvasElement" class="hidden"></canvas>
 
         <!-- Analysis Results Section -->
-        <div v-if="analysisResult" class="mt-8 bg-white rounded-3xl shadow-2xl overflow-hidden p-8">
-          <h2 class="text-4xl font-bold text-center mb-8">
-            <span v-if="analysisResult.is_authentic" class="text-green-600">✓ Authentic</span>
-            <span v-else class="text-red-600">✗ Counterfeit</span>
-          </h2>
+        <AnalysisResults
+          v-if="analysisResult"
+          :result="analysisResult"
+          @reset="resetCamera"
+        />
 
-          <!-- Overall Confidence -->
-          <div class="mb-6 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl text-center">
-            <p class="text-sm text-gray-600 mb-2">Overall Confidence</p>
-            <p class="text-4xl font-bold text-purple-600">{{ (analysisResult.overall_confidence * 100).toFixed(1) }}%</p>
-          </div>
-
-          <!-- Summary -->
-          <div class="mb-6 p-6 bg-gray-50 rounded-2xl">
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">Summary</h3>
-            <p class="text-gray-700">{{ analysisResult.summary }}</p>
-          </div>
-
-          <!-- Criteria Results -->
-          <div class="mb-6">
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">Detailed Results</h3>
-            <div class="space-y-3">
-              <div 
-                v-for="(result, index) in analysisResult.criteria_results" 
-                :key="index"
-                :class="[
-                  'p-4 rounded-xl border-l-4',
-                  result.passed ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
-                ]"
-              >
-                <div class="flex items-start gap-3">
-                  <div class="flex-shrink-0">
-                    <span v-if="result.passed" class="text-2xl">✓</span>
-                    <span v-else class="text-2xl">✗</span>
-                  </div>
-                  <div class="flex-1">
-                    <p class="font-semibold text-gray-900 mb-1">{{ result.criterion }}</p>
-                    <p class="text-sm text-gray-600 mb-2">{{ result.notes }}</p>
-                    <p class="text-xs text-gray-500">Confidence: {{ (result.confidence * 100).toFixed(1) }}%</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="flex gap-4 justify-center">
-            <button 
-              @click="resetCamera"
-              class="px-8 py-4 bg-purple-600 text-white text-lg font-semibold rounded-full hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
-            >
-              🔄 Check Another Item
-            </button>
-          </div>
-        </div>
-
-        <!-- Results Section -->
-        <div v-if="showResults && detectionResult && !isCapturingCriteria && !analysisResult" ref="criteriaSection" class="mt-8 bg-white rounded-3xl shadow-2xl overflow-hidden p-8">
-          <h2 class="text-3xl font-bold text-gray-900 mb-6">✨ Detection Results</h2>
-          
-          <!-- Item Info -->
-          <div class="mb-6 p-6 bg-purple-50 rounded-2xl">
-            <h3 class="text-xl font-semibold text-purple-900 mb-2">Detected Item</h3>
-            <p class="text-2xl font-bold text-purple-600">{{ detectionResult.item }}</p>
-            <p class="text-sm text-gray-600 mt-2">Detection ID: {{ detectionResult.detection_id }}</p>
-          </div>
-
-          <!-- Camera Instructions -->
-          <div class="mb-6">
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">📸 Next Steps: Capture These Views</h3>
-            <p class="text-gray-600 mb-4">Please take photos of the following angles to verify authenticity:</p>
-            
-            <div class="space-y-4">
-              <div 
-                v-for="(location, index) in detectionResult.location_angle" 
-                :key="index"
-                class="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-l-4 border-purple-500"
-              >
-                <div class="flex items-start gap-3">
-                  <div class="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
-                    {{ index + 1 }}
-                  </div>
-                  <div class="flex-1">
-                    <p class="font-semibold text-gray-900">
-                      📷 {{ location }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="flex gap-4 justify-center">
-            <button 
-              @click="continueToCapture"
-              class="px-8 py-4 bg-purple-600 text-white text-lg font-semibold rounded-full hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
-            >
-              📸 Continue to Capture
-            </button>
-            <button 
-              @click="resetCamera"
-              class="px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 text-lg font-semibold rounded-full hover:bg-purple-50 transition-all duration-300"
-            >
-              🔄 Start Over
-            </button>
-          </div>
-        </div>
+        <!-- Detection Results Section -->
+        <DetectionResults
+          v-if="showResults && detectionResult && !isCapturingCriteria && !analysisResult"
+          ref="criteriaSection"
+          :item="detectionResult.item"
+          :detection-id="detectionResult.detection_id"
+          :location-angles="detectionResult.location_angle"
+          @continue="continueToCapture"
+          @reset="resetCamera"
+        />
 
       </div>
     </div>
@@ -379,7 +93,8 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 const config = useRuntimeConfig()
 const API_URL = config.public.apiUrl
 
-const videoElement = ref(null)
+const cameraViewRef = ref(null)
+const criteriaCaptureRef = ref(null)
 const canvasElement = ref(null)
 const criteriaSection = ref(null)
 const capturedImage = ref(null)
@@ -443,13 +158,18 @@ const startCamera = async () => {
     // Wait for DOM to update
     await nextTick()
     
+    // Get the appropriate video element from the active component
+    const activeVideoElement = isCapturingCriteria.value 
+      ? criteriaCaptureRef.value?.videoElement 
+      : cameraViewRef.value?.videoElement
+    
     // Now attach stream to video element
-    if (videoElement.value) {
-      videoElement.value.srcObject = stream.value
+    if (activeVideoElement) {
+      activeVideoElement.srcObject = stream.value
       
       // Ensure video plays
-      videoElement.value.onloadedmetadata = () => {
-        videoElement.value.play()
+      activeVideoElement.onloadedmetadata = () => {
+        activeVideoElement.play()
       }
     }
   } catch (error) {
@@ -481,10 +201,10 @@ const stopCamera = () => {
 }
 
 const capturePhoto = () => {
-  if (!videoElement.value || !canvasElement.value) return
-  
-  const video = videoElement.value
+  const video = cameraViewRef.value?.videoElement
   const canvas = canvasElement.value
+  
+  if (!video || !canvas) return
   
   canvas.width = video.videoWidth
   canvas.height = video.videoHeight
@@ -611,7 +331,7 @@ const analyzeImage = async () => {
     // Auto-scroll to criteria section
     await nextTick()
     if (criteriaSection.value) {
-      criteriaSection.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      criteriaSection.value.$el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
     
   } catch (error) {
@@ -631,10 +351,24 @@ const continueToCapture = () => {
 }
 
 const captureCriterionPhoto = () => {
-  if (!videoElement.value || !canvasElement.value) return
-  
-  const video = videoElement.value
+  const video = criteriaCaptureRef.value?.videoElement
   const canvas = canvasElement.value
+  
+  if (!video || !canvas) {
+    console.error('Video or canvas element not found', { 
+      video: video, 
+      canvas: canvas 
+    })
+    alert('Camera not ready. Please try again.')
+    return
+  }
+  
+  // Check if video is actually playing
+  if (video.readyState < 2) {
+    console.error('Video not ready')
+    alert('Video not ready. Please wait a moment and try again.')
+    return
+  }
   
   canvas.width = video.videoWidth
   canvas.height = video.videoHeight
@@ -644,6 +378,10 @@ const captureCriterionPhoto = () => {
   
   const imageData = canvas.toDataURL('image/jpeg')
   criteriaImages.value.push(imageData)
+  
+  console.log(`Captured criterion ${currentCriterionIndex.value + 1}`, { 
+    totalImages: criteriaImages.value.length 
+  })
   
   // Move to next criterion or finish
   if (currentCriterionIndex.value < detectionResult.value.location_angle.length - 1) {
