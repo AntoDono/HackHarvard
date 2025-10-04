@@ -12,6 +12,54 @@ import os
 from typing import Dict, Optional
 from packaged_models.model_runner import ModelRunner
 
+def calculate_weighted_average(per_model: Dict[str, Optional[float]]) -> Optional[float]:
+    """
+    Calculate weighted average of model predictions.
+    
+    Models are weighted to give more influence to the more reliable detectors:
+    - faceforensics_image: 2.0x weight (specialized for face manipulation detection)
+    - ganimagedetection_image: 2.0x weight (excellent for GAN-generated images)
+    - cnndetection_image: 2.0x weight (robust CNN-based detector)
+    - photoshop_fal_image: 1.0x weight (still useful but less emphasis)
+    
+    Args:
+        per_model: Dictionary mapping model names to their predictions (0-1) or None
+        
+    Returns:
+        Weighted average probability (0-1), or None if no valid predictions
+        
+    Example:
+        >>> per_model = {
+        ...     'cnndetection_image': 0.8,
+        ...     'ganimagedetection_image': 0.006,
+        ...     'faceforensics_image': 0.75,
+        ...     'photoshop_fal_image': 0.001
+        ... }
+        >>> calculate_weighted_average(per_model)
+        0.5877  # (0.8*2 + 0.006*2 + 0.75*2 + 0.001*1) / 7
+    """
+    # Define model weights (higher = more influence)
+    model_weights = {
+        "cnndetection_image": 2.0,  
+        "ganimagedetection_image": 2.0,
+        "faceforensics_image": 2.0,
+        "photoshop_fal_image": 1.0,
+    }
+    
+    weighted_sum = 0.0
+    total_weight = 0.0
+    
+    for model_name, prediction in per_model.items():
+        if prediction is not None:
+            weight = model_weights.get(model_name, 1.0)  # Default weight of 1.0 for unknown models
+            weighted_sum += float(prediction) * weight
+            total_weight += 1
+    
+    if total_weight > 0:
+        return round(weighted_sum / total_weight, 6)
+    
+    return None
+
 
 class DeepfakeDetector:
     """Simple interface for deepfake detection."""
@@ -64,7 +112,7 @@ class DeepfakeDetector:
         Returns:
             Dictionary containing:
                 - 'is_deepfake': Boolean indicating if image is likely a deepfake (prob > 0.5)
-                - 'probability': Average probability across all models (0-1)
+                - 'probability': Weighted average probability across all models (0-1)
                 - 'per_model': Dictionary of individual model probabilities
                 
         Example:
@@ -83,14 +131,17 @@ class DeepfakeDetector:
         if os.path.exists(self.temp_path):
             os.remove(self.temp_path)
         
-        probability = result.get('average')
+        # Calculate weighted average instead of simple average
+        per_model = result.get('per_model', {})
+        probability = calculate_weighted_average(per_model)
         
         return {
             'is_deepfake': probability > 0.5 if probability is not None else None,
             'probability': probability,
-            'per_model': result.get('per_model', {})
+            'per_model': per_model
         }
 
+DETECTOR = None
 
 def detect_deepfake_from_path(image_path: str, models_root: str = "./models") -> Dict[str, any]:
     """
@@ -108,5 +159,6 @@ def detect_deepfake_from_path(image_path: str, models_root: str = "./models") ->
         if result['is_deepfake']:
             print(f"Warning: Image is likely AI-generated ({result['probability']:.2%})")
     """
-    detector = DeepfakeDetector(models_root=models_root)
-    return detector.detect_deepfake(image_path)
+    if DETECTOR is None:
+        DETECTOR = DeepfakeDetector(models_root=models_root)
+    return DETECTOR.detect_deepfake(image_path)
