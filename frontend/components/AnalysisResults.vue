@@ -42,25 +42,6 @@
       </div>
     </div>
 
-    <!-- Authentication Metrics Grid -->
-    <div v-if="result.authentication_metrics" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-purple-50 rounded-xl p-4 text-center">
-        <p class="text-3xl font-bold text-purple-600">{{ result.authentication_metrics.total_criteria_checked || 0 }}</p>
-        <p class="text-sm text-gray-600">Criteria Checked</p>
-      </div>
-      <div class="bg-green-50 rounded-xl p-4 text-center">
-        <p class="text-3xl font-bold text-green-600">{{ result.authentication_metrics.criteria_passed || 0 }}</p>
-        <p class="text-sm text-gray-600">Passed</p>
-      </div>
-      <div class="bg-red-50 rounded-xl p-4 text-center">
-        <p class="text-3xl font-bold text-red-600">{{ result.authentication_metrics.criteria_failed || 0 }}</p>
-        <p class="text-sm text-gray-600">Failed</p>
-      </div>
-      <div class="bg-blue-50 rounded-xl p-4 text-center">
-        <p class="text-3xl font-bold text-blue-600">{{ (result.authentication_metrics.average_score || 0).toFixed(1) }}</p>
-        <p class="text-sm text-gray-600">Avg Score</p>
-      </div>
-    </div>
 
     <!-- Risk Assessment -->
     <div v-if="result.risk_assessment" class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">

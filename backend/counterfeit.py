@@ -241,13 +241,18 @@ def counterfeit(item: str, criteria_data: Dict[str, List[str]], images: List[str
     if criteria_results:
         scores = [cr.get('score', 0) for cr in criteria_results]
         avg_score = np.mean(scores)
-        overall_confidence = avg_score / 5.0
+        
+        # Calculate total score percentage
+        total_actual_score = sum(scores)
+        total_possible_score = len(scores) * 5  # Each criterion has max 5 points
+        score_percentage = (total_actual_score / total_possible_score) * 100
+        overall_confidence = total_actual_score / total_possible_score
         
         passed_count = sum(1 for cr in criteria_results if cr.get('passed', False))
         failed_count = len(criteria_results) - passed_count
         
-        # Determine if authentic (require average score >= 4 and at least 70% passing)
-        is_authentic = avg_score >= 4.0 and (passed_count / len(criteria_results)) >= 0.7
+        # Determine if authentic: score must be above 80%
+        is_authentic = score_percentage > 70.0
         
         # Calculate risk assessment
         counterfeit_probability = int((1 - overall_confidence) * 100)
@@ -269,9 +274,9 @@ def counterfeit(item: str, criteria_data: Dict[str, List[str]], images: List[str
         
         # Generate summary
         if is_authentic:
-            summary = f"✅ Item appears AUTHENTIC. Average score: {avg_score:.1f}/5. {passed_count}/{len(criteria_results)} criteria passed."
+            summary = f"✅ Item appears AUTHENTIC. Total score: {total_actual_score}/{total_possible_score} ({score_percentage:.1f}%). {passed_count}/{len(criteria_results)} criteria passed."
         else:
-            summary = f"❌ Item appears COUNTERFEIT. Average score: {avg_score:.1f}/5. Only {passed_count}/{len(criteria_results)} criteria passed."
+            summary = f"❌ Item appears COUNTERFEIT. Total score: {total_actual_score}/{total_possible_score} ({score_percentage:.1f}%). Only {passed_count}/{len(criteria_results)} criteria passed."
         
         # Generate recommendations
         recommendations = []
@@ -295,6 +300,9 @@ def counterfeit(item: str, criteria_data: Dict[str, List[str]], images: List[str
                 "criteria_passed": int(passed_count),
                 "criteria_failed": int(failed_count),
                 "average_score": float(avg_score),
+                "total_actual_score": int(total_actual_score),
+                "total_possible_score": int(total_possible_score),
+                "score_percentage": float(score_percentage),
                 "confidence_distribution": {str(i): int(scores.count(i)) for i in range(1, 6)}
             },
             "risk_assessment": {
