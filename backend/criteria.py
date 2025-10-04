@@ -121,7 +121,7 @@ def search_online_criteria(item: str, max_retries: int = 3):
         try:
             # Call model with search capabilities
             response = client.models.generate_content(
-                model="gemini-flash-latest",
+                model="gemini-2.5-pro",
                 contents=contents,
                 config=generate_content_config
             )
