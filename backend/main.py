@@ -12,6 +12,12 @@ CORS(app)  # Enable CORS for frontend communication
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+DETECT_TASKS = {}
+
+# {
+#   "detection_id": { type: str item: str, item_detection_image: [str], criteria: list[str], criteria_images: [str] }
+# }
+
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint"""
@@ -63,12 +69,36 @@ def detect():
             "confidence": 0.85,
             "detected_item": "Sample Item"
         }
+
+        # TODO: use item_detection.py to analyze the item
+
+        # TODO: use criteria.py to get the criteria for the item
+
+        # TODO: return the criteria's camera angle and location
+
+        # TODO: update the DETECT_TASKS with the detection_id (should be generated), item, item_detection_image, criteria
         
+        # TODO: return the `detection_id` and criteria's camera angle and location
         return jsonify(response), 200
         
     except Exception as e:
         print(f"❌ Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+def analyze_item(detection_id: str):
+    """
+    Analyze the item for the detection_id
+    """
+    pass
+
+   # TODO: get detection_id, and the x number of images from requested criteria angle and location
+
+   # TODO: use counterfeit.py to analyze the item, pass in the criteria's camera angle and location, and the item_detection_image
+
+   # TODO: get the confidence score from the counterfeit.py analysis
+
+   # TODO: return the results.
+
 
 if __name__ == '__main__':
     print("🚀 Starting Flask backend...")
