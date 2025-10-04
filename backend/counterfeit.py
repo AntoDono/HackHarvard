@@ -252,7 +252,7 @@ def counterfeit(item: str, criteria_data: Dict[str, List[str]], images: List[str
         failed_count = len(criteria_results) - passed_count
         
         # Determine if authentic: score must be above 80%
-        is_authentic = score_percentage > 70.0
+        is_authentic = score_percentage > 60.0
         
         # Calculate risk assessment
         counterfeit_probability = int((1 - overall_confidence) * 100)
