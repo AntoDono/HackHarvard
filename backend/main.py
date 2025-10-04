@@ -241,7 +241,13 @@ def analyze_item(detection_id: str):
 
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5555))
+    host = os.environ.get('HOST', '0.0.0.0')
+    debug = os.environ.get('DEBUG', 'True').lower() == 'true'
+    
     print("🚀 Starting Flask backend...")
     print(f"📁 Upload directory: {UPLOAD_DIR.absolute()}")
-    app.run(debug=True, port=5555, host='0.0.0.0')
+    print(f"🌐 Running on {host}:{port}")
+    
+    app.run(debug=debug, port=port, host=host)
 
