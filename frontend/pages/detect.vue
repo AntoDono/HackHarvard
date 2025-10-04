@@ -139,8 +139,7 @@
     <!-- Processing Overlay (for criteria fetching) -->
     <div 
       v-if="isProcessing && !isCameraActive && !showDetectionModal" 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 overflow-hidden"
-      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999;"
+      class="loading-overlay"
     >
       <div class="w-full h-full flex items-center justify-center p-4">
         <LoadingAnimation :message="processingStep" />
@@ -817,16 +816,37 @@ onUnmounted(() => {
   animation: modal-in 0.3s ease-out forwards;
 }
 
+/* Loading Overlay - Covers Everything */
+.loading-overlay {
+  position: fixed;
+  top: -10vh;
+  left: -10vw;
+  right: -10vw;
+  bottom: -10vh;
+  width: 120vw;
+  height: 120vh;
+  min-height: 120vh;
+  min-width: 120vw;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 /* Mobile-specific loading overlay fixes */
 @media (max-width: 768px) {
-  .fixed.inset-0 {
+  .loading-overlay {
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
+    top: -20vh !important;
+    left: -20vw !important;
+    right: -20vw !important;
+    bottom: -20vh !important;
+    width: 140vw !important;
+    height: 140vh !important;
+    min-height: 140vh !important;
+    min-width: 140vw !important;
     z-index: 9999 !important;
   }
 }
