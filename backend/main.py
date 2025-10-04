@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import base64
 import os
+import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +15,10 @@ from upload_image import upload_image_to_supabase
 from person import research_person_fakeness
 from fact_check import fact_check
 from image_similarity_scores import ComparisonAnalyzer
+
+# Add ai_detection to path and import deepfake detector
+sys.path.insert(0, str(Path(__file__).parent / "ai_detection"))
+from deepfake_detector import detect_deepfake_from_path
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
@@ -90,6 +95,62 @@ def detect():
             f.write(image_bytes)
         
         print(f"✅ Image saved: {filepath}")
+        
+        # 🤖 DEEPFAKE DETECTION - Check if image is AI-generated before proceeding
+        print("🔍 Running deepfake detection...")
+        try:
+            deepfake_result = detect_deepfake_from_path(
+                str(filepath), 
+                models_root=str(Path(__file__).parent / "ai_detection" / "models")
+            )
+            
+            # Extract detection results
+            is_deepfake = deepfake_result.get('is_deepfake')
+            probability = deepfake_result.get('probability')
+            per_model = deepfake_result.get('per_model', {})
+            
+            print(f"🤖 Deepfake detection result: {probability:.2%}" if probability else "⚠️  Deepfake detection failed")
+            
+            # If detected as deepfake (probability > 0.5), return early with deepfake info
+            if is_deepfake and probability is not None:
+                print(f"⚠️  DEEPFAKE DETECTED with {probability:.2%} confidence")
+                
+                response = {
+                    "success": True,
+                    "is_deepfake": True,
+                    "deepfake_detection": {
+                        "is_deepfake": is_deepfake,
+                        "probability": probability,
+                        "confidence_level": "high" if probability > 0.75 else "medium" if probability > 0.5 else "low",
+                        "per_model_results": [
+                            {
+                                "model": model_name.replace("_image", "").replace("_", " ").title(),
+                                "probability": prob,
+                                "detected_as_fake": prob > 0.5 if prob is not None else None
+                            }
+                            for model_name, prob in per_model.items()
+                        ],
+                        "average_probability": probability,
+                        "message": "This image appears to be AI-generated or manipulated.",
+                        "warning": "The content in this image may not be authentic."
+                    },
+                    "filename": filename
+                }
+                
+                return jsonify(response), 200
+            
+            # If not a deepfake, log and continue with normal detection
+            if probability is not None:
+                print(f"✅ Image appears authentic ({(1-probability):.2%} confidence)")
+            
+        except FileNotFoundError as e:
+            # Models not found - log warning but continue
+            print(f"⚠️  Deepfake detection skipped: {str(e)}")
+            print("   Continuing with normal detection flow...")
+        except Exception as e:
+            # Other errors - log but don't stop the flow
+            print(f"⚠️  Deepfake detection error: {str(e)}")
+            print("   Continuing with normal detection flow...")
         
         # Use item_detection.py to analyze the image
         detection_result = analyze_image(str(filepath), allow_repositioning=False)
