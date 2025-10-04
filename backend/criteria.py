@@ -132,7 +132,6 @@ def criteria(item: str):
 
 
 if __name__ == "__main__":
-    # Example usage
     item_name = "LV Baby Blue Card Holder"
     time_now = time.time()
     print(f"Authentication criteria for {item_name}:\n")
