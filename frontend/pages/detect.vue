@@ -209,6 +209,18 @@
             <p class="text-xs text-gray-500 mt-4 text-center border-t border-purple-200 pt-3">Detection ID: {{ detectionResult.detection_id }}</p>
           </div>
 
+          <!-- Brand Input -->
+          <div class="mb-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200">
+            <h3 class="text-lg font-semibold text-blue-900 mb-3">🏷️ Specify Brand (Optional)</h3>
+            <p class="text-sm text-gray-600 mb-4">Enter the brand name for more accurate authentication criteria</p>
+            <input 
+              v-model="userSpecifiedBrand"
+              type="text" 
+              placeholder="e.g., Louis Vuitton, Gucci, Nike..."
+              class="w-full px-4 py-3 border-2 border-blue-300 rounded-xl focus:outline-none focus:border-blue-500 text-lg"
+            />
+          </div>
+
           <!-- Next Steps Preview -->
           <div class="mb-6">
             <h3 class="text-xl font-semibold text-gray-900 mb-3">📸 Next Steps</h3>
@@ -273,6 +285,7 @@ const factCheckResult = ref(null)
 const zoomLevel = ref(1)
 const minZoom = ref(1)
 const maxZoom = ref(3)
+const userSpecifiedBrand = ref('')
 
 const requestCameraPermission = async () => {
   try {
@@ -440,6 +453,7 @@ const resetCamera = () => {
   showPersonInput.value = false
   personResearchResult.value = null
   factCheckResult.value = null
+  userSpecifiedBrand.value = ''
   stopCamera()
 }
 
@@ -534,12 +548,15 @@ const confirmAndProceed = async () => {
   processingStep.value = 'Getting authentication criteria...'
   
   try {
-    // Fetch criteria for the detected item
+    // Fetch criteria for the detected item (with optional brand)
+    const requestBody = userSpecifiedBrand.value ? { brand: userSpecifiedBrand.value } : {}
+    
     const criteriaResponse = await fetch(`${API_URL}/criteria/${detectionResult.value.detection_id}`, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
+      body: JSON.stringify(requestBody)
     })
     
     if (!criteriaResponse.ok) {

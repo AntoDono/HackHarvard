@@ -337,10 +337,11 @@ def research_person():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/criteria/<detection_id>', methods=['GET'])
+@app.route('/criteria/<detection_id>', methods=['POST'])
 def get_criteria_for_detection(detection_id):
     """
     Step 2: Get authentication criteria for a detected item (product workflow).
+    Accepts optional brand parameter in request body.
     """
     try:
         # Check if detection_id exists
@@ -350,9 +351,21 @@ def get_criteria_for_detection(detection_id):
         task = DETECT_TASKS[detection_id]
         item_name = task["item"]
         
+        # Get optional brand from request body
+        data = request.get_json() if request.is_json else {}
+        brand = data.get('brand', '').strip() if data else ''
+        
+        # If brand specified, prepend to item name
+        if brand:
+            item_name_with_brand = f"{brand} {item_name}"
+            print(f"🏷️  Brand specified: {brand}, using '{item_name_with_brand}' for criteria")
+            task["brand"] = brand
+        else:
+            item_name_with_brand = item_name
+        
         # Get criteria if not already cached in the task
         if task["criteria"] is None:
-            criteria_data = get_criteria(item_name)
+            criteria_data = get_criteria(item_name_with_brand)
             
             # Update task with criteria (both simple and detailed formats)
             DETECT_TASKS[detection_id]["criteria"] = criteria_data.get("criteria", [])
