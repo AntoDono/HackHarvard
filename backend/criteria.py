@@ -80,7 +80,7 @@ def get_cached_criteria(item: str):
     
     return None
 
-def search_online_criteria(item: str):
+def search_online_criteria(item: str, max_retries: int = 3):
     """Use Gemini Flash Lite with Google Search to find authentic criteria online."""
     from google.genai import types
     
@@ -115,22 +115,36 @@ def search_online_criteria(item: str):
         ),
     ]
     
-    # Call model with search capabilities
-    response = client.models.generate_content(
-        model="gemini-flash-lite-latest",
-        contents=contents,
-        config=generate_content_config
-    )
-    
-    content = response.text
-    
-    # Parse JSON object with criteria and location_angle
-    criteria_data = parse_json_object(content)
-    
-    # Cache the results
-    cache_criteria(item, criteria_data)
-    
-    return criteria_data
+    # Retry logic for JSON parsing errors
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            # Call model with search capabilities
+            response = client.models.generate_content(
+                model="gemini-flash-latest",
+                contents=contents,
+                config=generate_content_config
+            )
+            
+            content = response.text
+            
+            # Parse JSON object with criteria and location_angle
+            criteria_data = parse_json_object(content)
+            
+            # Cache the results
+            cache_criteria(item, criteria_data)
+            
+            return criteria_data
+            
+        except (json.JSONDecodeError, ValueError) as e:
+            last_error = e
+            print(f"❌ Attempt {attempt + 1}/{max_retries} failed: Invalid JSON format - {str(e)}")
+            if attempt < max_retries - 1:
+                print(f"🔄 Retrying...")
+                time.sleep(1)  # Brief pause before retry
+            else:
+                print(f"❌ All {max_retries} attempts failed")
+                raise Exception(f"Failed to get valid criteria after {max_retries} attempts: {str(last_error)}")
 
 def criteria(item: str):
     """

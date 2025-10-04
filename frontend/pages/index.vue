@@ -42,11 +42,23 @@
           </button>
         </div>
 
-        <!-- Features Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-24 fade-in-up" style="animation-delay: 0.5s">
-          <div class="feature-card" v-for="(feature, index) in features" :key="index" :style="`animation-delay: ${0.6 + index * 0.1}s`">
-            <div class="text-4xl mb-3">{{ feature.icon }}</div>
-            <div class="text-sm font-semibold text-gray-700">{{ feature.title }}</div>
+        <!-- Animated Features Marquee -->
+        <div class="mt-24">
+          <div class="w-screen relative left-1/2 right-1/2 -mx-[50vw] overflow-hidden">
+            <div class="marquee-container">
+              <div class="marquee-content">
+                <div v-for="(feature, index) in features" :key="`first-${index}`" class="feature-badge">
+                  <div class="text-3xl">{{ feature.icon }}</div>
+                  <div class="text-sm font-semibold text-gray-700">{{ feature.title }}</div>
+                </div>
+              </div>
+              <div class="marquee-content" aria-hidden="true">
+                <div v-for="(feature, index) in features" :key="`second-${index}`" class="feature-badge">
+                  <div class="text-3xl">{{ feature.icon }}</div>
+                  <div class="text-sm font-semibold text-gray-700">{{ feature.title }}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -58,82 +70,156 @@
       <div class="floating-element" style="top: 70%; right: 10%; animation-delay: 1.5s;">🤖</div>
     </div>
 
-    <!-- How It Works Section -->
-    <div class="py-20 bg-white">
-      <div class="max-w-6xl mx-auto px-8">
-        <div class="text-center mb-16 fade-in-up" style="animation-delay: 0.6s">
-          <h2 class="text-5xl font-bold text-gray-900 mb-4">How It Works</h2>
-          <p class="text-xl text-gray-600">Powered by real-time interactive AI with always up-to-date information</p>
+    <!-- See It In Action Section -->
+    <div class="py-20 bg-gradient-to-br from-gray-50 to-white">
+      <div class="max-w-7xl mx-auto px-8">
+        <div class="text-center mb-20 fade-in-up">
+          <h2 class="text-5xl font-bold text-gray-900 mb-4">See It In Action</h2>
+          <p class="text-xl text-gray-600">Watch how 4real? protects you from counterfeits in real-time</p>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-8 mb-16">
-          <!-- Step 1 -->
-          <div class="text-center p-8 bg-gradient-to-br from-purple-50 to-white rounded-3xl shadow-lg fade-in-up" style="animation-delay: 0.7s">
-            <div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
-            <h3 class="text-xl font-bold text-gray-900 mb-3">Capture or Upload</h3>
-            <p class="text-gray-600">
-              Take a photo or upload images of the item, person, or content you want to verify. Our system works with anything.
-            </p>
+        <!-- Feature 1: Snap & Detect (Left Image, Right Text) -->
+        <div class="flex flex-col md:flex-row items-center gap-12 mb-24">
+          <div class="md:w-1/2 fade-in-left">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+              <img 
+                src="/assets/images/redsox_detect_mobile.png" 
+                alt="Snap and Detect" 
+                class="w-full h-auto"
+              />
+            </div>
           </div>
-
-          <!-- Step 2 -->
-          <div class="text-center p-8 bg-gradient-to-br from-purple-50 to-white rounded-3xl shadow-lg fade-in-up" style="animation-delay: 0.8s">
-            <div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
-            <h3 class="text-xl font-bold text-gray-900 mb-3">Real-Time AI Analysis</h3>
-            <p class="text-gray-600">
-              Our AI searches the web in real-time for the latest authentication criteria, then uses vision models to analyze your image.
+          <div class="md:w-1/2 fade-in-right">
+            <div class="inline-block px-4 py-2 bg-purple-100 text-purple-600 rounded-full text-sm font-bold mb-4">
+              📸 STEP 1
+            </div>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Snap & Detect</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              Simply capture a photo or upload an image. Our AI instantly identifies what you're looking at—whether it's a luxury handbag, collectible, electronics, or any product.
             </p>
-          </div>
-
-          <!-- Step 3 -->
-          <div class="text-center p-8 bg-gradient-to-br from-purple-50 to-white rounded-3xl shadow-lg fade-in-up" style="animation-delay: 0.9s">
-            <div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
-            <h3 class="text-xl font-bold text-gray-900 mb-3">Get Instant Results</h3>
-            <p class="text-gray-600">
-              Receive detailed authenticity reports with confidence scores, visual evidence, and expert-level explanations.
-            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🤖</span>
+                <p class="text-gray-600"><strong>AI Vision Detection:</strong> Recognizes products, brands, and categories automatically</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🌐</span>
+                <p class="text-gray-600"><strong>Reverse Image Search:</strong> Finds authentic reference images from trusted sources</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">💰</span>
+                <p class="text-gray-600"><strong>Price Intelligence:</strong> Fetches real-time market prices to verify value</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Technology Stack -->
-        <div class="bg-gradient-to-br from-purple-600 to-purple-700 rounded-3xl p-10 text-white fade-in-up" style="animation-delay: 1s">
-          <h3 class="text-3xl font-bold mb-8 text-center">Powered by Cutting-Edge AI</h3>
-          
-          <div class="grid md:grid-cols-2 gap-8">
-            <div>
-              <h4 class="text-xl font-semibold mb-3 flex items-center gap-2">
-                <span class="text-2xl">🌐</span> Real-Time Web Intelligence
-              </h4>
-              <p class="text-purple-100">
-                Our system searches the internet live for the most up-to-date authentication criteria. No outdated databases—just fresh, accurate information every time.
-              </p>
+        <!-- Feature 2: Guided Capture (Right Image, Left Text) -->
+        <div class="flex flex-col md:flex-row-reverse items-center gap-12 mb-24">
+          <div class="md:w-1/2 fade-in-right">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+              <div class="relative">
+                <img 
+                  src="/assets/images/authentic_jelly_cat.png" 
+                  alt="Guided Authentication" 
+                  class="w-full h-auto"
+                />
+              </div>
             </div>
-
-            <div>
-              <h4 class="text-xl font-semibold mb-3 flex items-center gap-2">
-                <span class="text-2xl">👁️</span> Multi-Modal Vision AI
-              </h4>
-              <p class="text-purple-100">
-                Advanced CLIP and Gemini models analyze images against specific criteria—checking colors, patterns, materials, stitching, and more.
-              </p>
+          </div>
+          <div class="md:w-1/2 fade-in-left">
+            <div class="inline-block px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-bold mb-4">
+              🎯 STEP 2
             </div>
-
-            <div>
-              <h4 class="text-xl font-semibold mb-3 flex items-center gap-2">
-                <span class="text-2xl">📊</span> Confidence Scoring
-              </h4>
-              <p class="text-purple-100">
-                Get objective similarity scores powered by neural networks. Every result includes confidence levels so you know exactly how certain we are.
-              </p>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Guided Photo Capture</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              Our AI generates specific authentication criteria and guides you through capturing the exact angles and features needed to verify authenticity.
+            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🔍</span>
+                <p class="text-gray-600"><strong>Smart Criteria:</strong> AI searches the web for the latest authentication markers</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">📍</span>
+                <p class="text-gray-600"><strong>On-Screen Guidance:</strong> Shows exactly where to look and what to photograph</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">⚡</span>
+                <p class="text-gray-600"><strong>Step-by-Step:</strong> Captures multiple angles for comprehensive analysis</p>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <div>
-              <h4 class="text-xl font-semibold mb-3 flex items-center gap-2">
-                <span class="text-2xl">⚡</span> Smart Caching
-              </h4>
-              <p class="text-purple-100">
-                Using embedding similarity, we cache results intelligently. Get lightning-fast responses for similar items while staying current.
-              </p>
+        <!-- Feature 3: Authentic Results (Left Image, Right Text) -->
+        <div class="flex flex-col md:flex-row items-center gap-12 mb-24">
+          <div class="md:w-1/2 fade-in-left">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+              <img 
+                src="/assets/images/authentic_jelly_cat_details.png" 
+                alt="Detailed Analysis" 
+                class="w-full h-auto"
+              />
+            </div>
+          </div>
+          <div class="md:w-1/2 fade-in-right">
+            <div class="inline-block px-4 py-2 bg-green-100 text-green-600 rounded-full text-sm font-bold mb-4">
+              ✓ AUTHENTIC
+            </div>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Get Instant Results</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              Receive a comprehensive authenticity report with detailed scoring for each criterion. Our multi-modal AI analyzes colors, patterns, materials, stitching, and more.
+            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">📊</span>
+                <p class="text-gray-600"><strong>Confidence Scores:</strong> See individual criterion scores and overall authenticity rating</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">👁️</span>
+                <p class="text-gray-600"><strong>Visual Evidence:</strong> Compare your images side-by-side with analysis notes</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🧠</span>
+                <p class="text-gray-600"><strong>AI Reasoning:</strong> Understand exactly why the verdict was reached</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 4: Counterfeit Detection (Right Image, Left Text) -->
+        <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+          <div class="md:w-1/2 fade-in-right">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+              <img 
+                src="/assets/images/counterfeit_waterbottle_details.png" 
+                alt="Counterfeit Detection" 
+                class="w-full h-auto"
+              />
+            </div>
+          </div>
+          <div class="md:w-1/2 fade-in-left">
+            <div class="inline-block px-4 py-2 bg-red-100 text-red-600 rounded-full text-sm font-bold mb-4">
+              ✗ COUNTERFEIT DETECTED
+            </div>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Spot the Fakes</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              When counterfeits are detected, you'll see exactly what's wrong—failed criteria, low confidence scores, and detailed explanations of the inconsistencies.
+            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🚩</span>
+                <p class="text-gray-600"><strong>Red Flags:</strong> Highlights specific authentication failures</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">⚠️</span>
+                <p class="text-gray-600"><strong>Risk Assessment:</strong> Shows counterfeit probability and confidence levels</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🛡️</span>
+                <p class="text-gray-600"><strong>Protection:</strong> Saves you from purchasing fake items</p>
+              </div>
             </div>
           </div>
         </div>
@@ -231,6 +317,37 @@ const features = [
   }
 }
 
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0) rotate(0deg);
@@ -263,6 +380,16 @@ const features = [
   opacity: 0;
 }
 
+.fade-in-left {
+  animation: fadeInLeft 1s ease-out forwards;
+  opacity: 0;
+}
+
+.fade-in-right {
+  animation: fadeInRight 1s ease-out forwards;
+  opacity: 0;
+}
+
 .floating-element {
   position: absolute;
   font-size: 3rem;
@@ -280,6 +407,44 @@ const features = [
   animation: logoFloat 2s ease-in-out infinite;
 }
 
+/* Marquee Styles */
+.marquee-container {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
+.marquee-content {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-around;
+  gap: 3rem;
+  min-width: 100%;
+  animation: scroll 30s linear infinite;
+  padding: 0 2rem;
+}
+
+.feature-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 2rem;
+  background: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+.feature-badge:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(147, 51, 234, 0.15);
+}
+
 .feature-card {
   padding: 2rem;
   background: white;
@@ -293,5 +458,10 @@ const features = [
 .feature-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 24px rgba(147, 51, 234, 0.15);
+}
+
+/* Pause marquee on hover */
+.marquee-container:hover .marquee-content {
+  animation-play-state: paused;
 }
 </style>

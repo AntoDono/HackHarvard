@@ -45,7 +45,7 @@
           autoplay 
           playsinline
           muted
-          class="w-full h-full object-cover"
+          class="w-full h-full object-contain"
         ></video>
 
         <!-- Camera Status Indicator -->
@@ -105,6 +105,17 @@
           <div class="w-full h-full border-2 border-purple-500 opacity-30"></div>
           <div class="absolute top-1/2 left-0 right-0 h-0.5 bg-purple-500 opacity-20"></div>
           <div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-purple-500 opacity-20"></div>
+        </div>
+
+        <!-- "Where" Overlay on Camera -->
+        <div v-if="isCameraActive && currentDetailedCriterion" class="absolute bottom-12 left-4 right-4 pointer-events-none z-20">
+          <div class="bg-gradient-to-r from-blue-600/90 to-blue-500/90 backdrop-blur-sm text-white px-4 py-3 rounded-2xl shadow-2xl border-2 border-blue-300">
+            <p class="text-xs font-bold mb-1 flex items-center gap-1">
+              <span>📍</span>
+              <span>WHERE TO LOOK:</span>
+            </p>
+            <p class="text-sm font-semibold">{{ currentDetailedCriterion.primary_location }}</p>
+          </div>
         </div>
 
         <!-- Loading Overlay -->

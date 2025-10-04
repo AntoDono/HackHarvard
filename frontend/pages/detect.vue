@@ -74,6 +74,9 @@
           v-if="analysisResult"
           :result="analysisResult"
           :criteria-images="criteriaImages"
+          :product-name="detectionResult?.item"
+          :product-image="detectionResult?.product_image"
+          :product-url="detectionResult?.product_url"
           @reset="resetCamera"
         />
 

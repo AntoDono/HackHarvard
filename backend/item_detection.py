@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 import json
 from typing import Dict, Optional, List
 from prompts.item_detection import get_image_analysis_prompt, get_price_search_prompt
+from prompts.product_name_extraction import get_product_name_extraction_prompt
 from llm_parser import parse_json_object, parse_json_list
+from groq import Groq
 
 load_dotenv()
 
@@ -150,9 +152,65 @@ def get_price(product_name: str) -> List[float]:
         return [0, 0]
 
 
+def extract_product_name(product_name: str) -> str:
+    """
+    Extract clean product name using Groq.
+    
+    Example:
+        Input: "NIP ~ McDonalds BTS Tiny Tan ~ RM ~ ENCORE EDITION | eBay"
+        Output: "McDonalds BTS Tiny Tan"
+    
+    Args:
+        product_name: Raw product name string (often from URLs or titles)
+        
+    Returns:
+        Cleaned product name
+    """
+    try:
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+        
+        prompt = get_product_name_extraction_prompt(product_name)
+        
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.1,
+            max_tokens=100
+        )
+        
+        cleaned_name = response.choices[0].message.content.strip()
+        # Remove quotes if present
+        cleaned_name = cleaned_name.strip('"').strip("'")
+        
+        print(f"📝 Cleaned product name: '{product_name}' -> '{cleaned_name}'")
+        return cleaned_name
+        
+    except Exception as e:
+        print(f"⚠️  Error extracting product name with Groq: {str(e)}")
+        return None
+
+
 if __name__ == "__main__":
     # Example usage
     print("=" * 60)
+    print("Testing extract_product_name function")
+    print("=" * 60)
+    
+    test_names = [
+        "NIP ~ McDonalds BTS Tiny Tan ~ RM ~ ENCORE EDITION | eBay",
+        "Apple iPhone 15 Pro Max - 256GB - NEW - Factory Unlocked | Amazon",
+        "Louis Vuitton Wallet | Authentic LV | eBay",
+        "Nike Air Jordan 1 Retro High OG - Size 10 - BNIB | StockX"
+    ]
+    
+    for test_name in test_names:
+        cleaned = extract_product_name(test_name)
+        print(f"\nOriginal: {test_name}")
+        print(f"Cleaned:  {cleaned}")
+    
+    print("\n" + "=" * 60)
     print("Testing get_price function")
     print("=" * 60)
     

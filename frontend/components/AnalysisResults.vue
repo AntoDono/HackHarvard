@@ -10,35 +10,54 @@
       <h3 class="text-xl font-semibold text-gray-900 mb-4">🔍 Initial Scan Analysis</h3>
       <p class="text-sm text-gray-600 mb-4">Comparing your item with the reference product image</p>
       
+      <!-- Product Info Card -->
+      <div v-if="productImage || productUrl" class="mb-6 p-4 bg-white rounded-xl shadow-md border border-indigo-200">
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+          <!-- Product Image -->
+          <div v-if="productImage" class="flex-shrink-0">
+            <img 
+              :src="productImage" 
+              :alt="productName || 'Product'"
+              class="w-32 h-32 object-cover rounded-lg shadow-sm border-2 border-indigo-200"
+            />
+          </div>
+          
+          <!-- Product Info -->
+          <div class="flex-1 text-center md:text-left">
+            <p v-if="productName" class="text-lg font-bold text-gray-900 mb-2">{{ productName }}</p>
+            <a 
+              v-if="productUrl" 
+              :href="productUrl" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-full hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md text-sm"
+            >
+              <span>🌐 View Reference Product</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-white rounded-xl p-4 text-center shadow-sm">
           <p class="text-3xl font-bold text-indigo-600">{{ (result.initial_scan.similarity_score * 100).toFixed(1) }}%</p>
-          <p class="text-xs text-gray-600">Similarity Score</p>
+          <p class="text-xs text-gray-600">Image Embedding Score</p>
         </div>
         <div class="bg-white rounded-xl p-4 text-center shadow-sm">
-          <p class="text-lg font-bold" :class="result.initial_scan.match_status === 'MATCH' ? 'text-green-600' : 'text-orange-600'">
-            {{ result.initial_scan.match_status }}
+          <p class="text-lg font-bold" :class="productUrl ? 'text-green-600' : 'text-orange-600'">
+            {{ productUrl ? 'MATCH' : 'NO MATCH' }}
           </p>
           <p class="text-xs text-gray-600">Match Status</p>
         </div>
         <div class="bg-white rounded-xl p-4 text-center shadow-sm">
-          <p class="text-lg font-bold text-purple-600">{{ result.initial_scan.confidence }}</p>
+          <p class="text-lg font-bold" :class="averageScore > 3 ? 'text-green-600' : 'text-orange-600'">
+            {{ averageScore > 3.5 ? 'Confident' : 'Not Confident' }}
+          </p>
           <p class="text-xs text-gray-600">Confidence</p>
         </div>
-      </div>
-      
-      <div v-if="result.initial_scan.interpretation" class="mt-4 p-4 bg-white rounded-lg shadow-sm">
-        <p class="text-xs uppercase font-semibold text-gray-500 mb-1">Interpretation</p>
-        <p class="text-sm text-gray-700">{{ result.initial_scan.interpretation }}</p>
-      </div>
-      
-      <div v-if="result.initial_scan.counterfeit_risk" class="mt-2 p-3 rounded-lg" 
-           :class="getRiskBackground(result.initial_scan.counterfeit_risk)">
-        <p class="text-xs font-semibold text-gray-600">Risk Assessment: 
-          <span :class="getRiskColor(result.initial_scan.counterfeit_risk)" class="font-bold">
-            {{ result.initial_scan.counterfeit_risk }}
-          </span>
-        </p>
       </div>
     </div>
 
@@ -259,6 +278,18 @@ const props = defineProps({
   criteriaImages: {
     type: Array,
     default: () => []
+  },
+  productName: {
+    type: String,
+    default: ''
+  },
+  productImage: {
+    type: String,
+    default: ''
+  },
+  productUrl: {
+    type: String,
+    default: ''
   }
 })
 

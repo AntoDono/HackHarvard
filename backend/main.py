@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 import requests
-from item_detection import analyze_image, get_price
+from item_detection import analyze_image, get_price, extract_product_name
 from criteria import criteria as get_criteria
 from counterfeit import counterfeit
 from generate_real_images import ReverseImageSearcher
@@ -135,9 +135,14 @@ def detect():
                 top_result = max(search_results, key=lambda x: x.get('trust_score', 0))
                 product_url = top_result.get('link', '')
                 product_image = top_result.get('thumbnail', '')
+                product_title = top_result.get('title', '')
                 
+                product_name = extract_product_name(product_title)
+                if product_name:
+                    item_name = product_name
                 print(f"✅ Found product URL: {product_url}")
                 print(f"✅ Found product image: {product_image}")
+                print(f"✅ Found product name: {product_title}")
                 
                 # Download the product image
                 if product_image:

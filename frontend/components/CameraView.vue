@@ -10,7 +10,7 @@
           autoplay 
           playsinline
           muted
-          class="w-full h-full object-cover"
+          class="w-full h-full object-contain"
         ></video>
 
         <!-- Camera Status Indicator -->
@@ -70,7 +70,7 @@
           v-if="capturedImage" 
           :src="capturedImage" 
           alt="Captured" 
-          class="w-full h-full object-cover"
+          class="w-full h-full object-contain"
         />
 
         <!-- Placeholder when camera is not active -->
