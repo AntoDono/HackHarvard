@@ -134,7 +134,7 @@ def search_online_criteria(item: str):
 
 def criteria(item: str):
     """
-    Get authentication criteria for an item.
+    Get authentication criteria for an item with detailed location info and backups.
     First checks cache, then uses Gemini Flash Lite for online search.
     
     Args:
@@ -142,8 +142,9 @@ def criteria(item: str):
     
     Returns:
         dict: {
-            "criteria": List[str],
-            "location_angle": List[str]
+            "criteria": List[str],  # Simplified list for backward compatibility
+            "location_angle": List[str],  # Simplified list for backward compatibility
+            "detailed_criteria": List[dict]  # Full detailed criteria with backups
         }
     """
     # Initialize cache if needed
@@ -157,7 +158,34 @@ def criteria(item: str):
     
     # If not cached, search online
     print(f"Searching online for {item}")
-    return search_online_criteria(item)
+    detailed_data = search_online_criteria(item)
+    
+    # Transform detailed format to include backward-compatible simple lists
+    if "criteria" in detailed_data and isinstance(detailed_data["criteria"], list):
+        if len(detailed_data["criteria"]) > 0 and isinstance(detailed_data["criteria"][0], dict):
+            # New detailed format - extract simple lists for backward compatibility
+            simple_criteria = []
+            simple_locations = []
+            
+            for criterion in detailed_data["criteria"]:
+                # Primary feature as the main criterion
+                simple_criteria.append(criterion.get("primary_feature", ""))
+                # Primary location + how to photograph
+                location_str = f"{criterion.get('primary_location', '')} - {criterion.get('how_to_photograph', '')}"
+                simple_locations.append(location_str)
+            
+            result = {
+                "criteria": simple_criteria,
+                "location_angle": simple_locations,
+                "detailed_criteria": detailed_data["criteria"]
+            }
+            
+            # Cache the full result
+            cache_criteria(item, result)
+            return result
+    
+    # Fallback: old format or unexpected format
+    return detailed_data
 
 
 if __name__ == "__main__":
@@ -167,13 +195,28 @@ if __name__ == "__main__":
     
     authentication_criteria = criteria(item_name)
     
-    print(f"\nCriteria ({len(authentication_criteria.get('criteria', []))} items):")
-    for i, (criterion, location) in enumerate(zip(
-        authentication_criteria.get('criteria', []),
-        authentication_criteria.get('location_angle', [])
-    ), 1):
-        print(f"{i}. {criterion}")
-        print(f"   📍 {location}")
+    # Show detailed criteria if available
+    if "detailed_criteria" in authentication_criteria:
+        print(f"\nDetailed Criteria ({len(authentication_criteria.get('detailed_criteria', []))} items):")
+        for i, criterion in enumerate(authentication_criteria.get('detailed_criteria', []), 1):
+            print(f"\n{i}. PRIMARY FEATURE:")
+            print(f"   {criterion.get('primary_feature', 'N/A')}")
+            print(f"   📍 Location: {criterion.get('primary_location', 'N/A')}")
+            print(f"   ❓ Why Important: {criterion.get('why_important', 'N/A')}")
+            print(f"   📸 How to Photograph: {criterion.get('how_to_photograph', 'N/A')}")
+            print(f"\n   BACKUP OPTION:")
+            print(f"   {criterion.get('backup_feature', 'N/A')}")
+            print(f"   📍 Backup Location: {criterion.get('backup_location', 'N/A')}")
+            print(f"   📸 Backup Photography: {criterion.get('backup_how_to_photograph', 'N/A')}")
+    else:
+        # Fallback to simple format
+        print(f"\nCriteria ({len(authentication_criteria.get('criteria', []))} items):")
+        for i, (criterion, location) in enumerate(zip(
+            authentication_criteria.get('criteria', []),
+            authentication_criteria.get('location_angle', [])
+        ), 1):
+            print(f"{i}. {criterion}")
+            print(f"   📍 {location}")
     
     time_elapsed = time.time() - time_now
     print(f"\nTime elapsed: {time_elapsed} seconds")

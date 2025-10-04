@@ -2,11 +2,36 @@
   <div class="w-full flex justify-center px-4">
     <div class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md">
       <!-- Current Criterion Instructions - Above Camera -->
-      <div class="p-3 bg-gradient-to-r from-purple-50 to-pink-50 border-b-2 border-purple-200">
-        <p class="text-xs font-semibold text-purple-900 text-center mb-1">
+      <div class="p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-b-2 border-purple-200">
+        <p class="text-xs font-semibold text-purple-900 text-center mb-2">
           Step {{ currentIndex + 1 }} of {{ totalSteps }}
         </p>
-        <p class="text-sm font-semibold text-gray-900 text-center">
+        
+        <!-- Detailed Criteria if available -->
+        <div v-if="currentDetailedCriterion" class="space-y-2 text-left max-w-xl mx-auto">
+          <div class="bg-white rounded-lg p-2 shadow-sm">
+            <p class="text-xs font-semibold text-purple-700 mb-1">🎯 What to Look For:</p>
+            <p class="text-xs text-gray-800">{{ currentDetailedCriterion.primary_feature }}</p>
+          </div>
+          
+          <div class="bg-white rounded-lg p-2 shadow-sm">
+            <p class="text-xs font-semibold text-blue-700 mb-1">📍 Where:</p>
+            <p class="text-xs text-gray-800">{{ currentDetailedCriterion.primary_location }}</p>
+          </div>
+          
+          <div class="bg-white rounded-lg p-2 shadow-sm">
+            <p class="text-xs font-semibold text-green-700 mb-1">📸 How to Photograph:</p>
+            <p class="text-xs text-gray-800">{{ currentDetailedCriterion.how_to_photograph }}</p>
+          </div>
+          
+          <div v-if="showBackup" class="bg-yellow-50 rounded-lg p-2 border border-yellow-300">
+            <p class="text-xs font-semibold text-yellow-800 mb-1">⚠️ Backup Option:</p>
+            <p class="text-xs text-gray-700">{{ currentDetailedCriterion.backup_feature }} - {{ currentDetailedCriterion.backup_location }}</p>
+          </div>
+        </div>
+        
+        <!-- Fallback to simple instruction -->
+        <p v-else class="text-sm font-semibold text-gray-900 text-center">
           📷 {{ currentInstruction }}
         </p>
       </div>
@@ -75,6 +100,16 @@
           </div>
         </div>
 
+        <!-- Show Backup Button if detailed criteria available -->
+        <div v-if="currentDetailedCriterion && currentDetailedCriterion.backup_feature" class="mb-2 text-center">
+          <button 
+            @click="showBackup = !showBackup"
+            class="text-xs px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full hover:bg-yellow-200 transition-all font-medium"
+          >
+            {{ showBackup ? '✓ Hide' : '⚠️ Show' }} Backup Option
+          </button>
+        </div>
+
         <!-- Camera Controls for Criteria -->
         <div class="flex gap-2">
           <button 
@@ -109,11 +144,13 @@
 import { ref } from 'vue'
 
 const videoElement = ref(null)
+const showBackup = ref(false)
 
 defineProps({
   currentIndex: Number,
   totalSteps: Number,
   currentInstruction: String,
+  currentDetailedCriterion: Object,
   isCameraActive: Boolean,
   isProcessing: Boolean,
   processingStep: String

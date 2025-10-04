@@ -44,6 +44,7 @@
           :current-index="currentCriterionIndex"
           :total-steps="detectionResult?.location_angle?.length || 0"
           :current-instruction="detectionResult?.location_angle?.[currentCriterionIndex] || ''"
+          :current-detailed-criterion="detectionResult?.detailed_criteria?.[currentCriterionIndex]"
           :is-camera-active="isCameraActive"
           :is-processing="isProcessing"
           :processing-step="processingStep"
@@ -480,10 +481,11 @@ const confirmAndProceed = async () => {
     
     console.log('✅ Criteria fetched:', criteriaResult.location_angle.length, 'items')
     
-    // Add criteria to detection result
+    // Add criteria to detection result (both simple and detailed)
     detectionResult.value = {
       ...detectionResult.value,
-      location_angle: criteriaResult.location_angle
+      location_angle: criteriaResult.location_angle,
+      detailed_criteria: criteriaResult.detailed_criteria || []
     }
     
     isProcessing.value = false

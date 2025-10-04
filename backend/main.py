@@ -133,7 +133,8 @@ def detect():
                 "product_image": product_image,
                 "price_range": price_range,
                 "criteria": None,
-                "location_angle": None
+                "location_angle": None,
+                "detailed_criteria": None
             }
             
             # Return detection info with product URL, image, and price range
@@ -278,15 +279,17 @@ def get_criteria_for_detection(detection_id):
         if task["criteria"] is None:
             criteria_data = get_criteria(item_name)
             
-            # Update task with criteria
+            # Update task with criteria (both simple and detailed formats)
             DETECT_TASKS[detection_id]["criteria"] = criteria_data.get("criteria", [])
             DETECT_TASKS[detection_id]["location_angle"] = criteria_data.get("location_angle", [])
+            DETECT_TASKS[detection_id]["detailed_criteria"] = criteria_data.get("detailed_criteria", [])
         
         response = {
             "success": True,
             "detection_id": detection_id,
             "item": item_name,
-            "location_angle": DETECT_TASKS[detection_id]["location_angle"]
+            "location_angle": DETECT_TASKS[detection_id]["location_angle"],
+            "detailed_criteria": DETECT_TASKS[detection_id].get("detailed_criteria", [])
         }
         
         return jsonify(response), 200
