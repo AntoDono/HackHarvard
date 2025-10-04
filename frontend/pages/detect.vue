@@ -20,17 +20,9 @@
           <p class="text-md text-purple-600 font-semibold">Powered by real-time AI with always up-to-date information</p>
         </div>
 
-        <!-- Detected Item Badge (Outside Canvas) -->
-        <div v-if="capturedImage && detectedItem && !isCapturingCriteria" class="mb-4 mx-auto max-w-md">
-          <div class="bg-green-500 text-white px-6 py-3 rounded-2xl shadow-lg text-center">
-            <p class="text-sm font-semibold">✓ Detected:</p>
-            <p class="text-xl font-bold">{{ detectedItem }}</p>
-          </div>
-        </div>
-
         <!-- Camera Section for Initial Detection -->
         <CameraView
-          v-if="!isCapturingCriteria && !showResults && !analysisResult"
+          v-if="!isCapturingCriteria && !showResults && !analysisResult && !showPersonInput && !personResearchResult"
           ref="cameraViewRef"
           :captured-image="capturedImage"
           :is-camera-active="isCameraActive"
@@ -64,24 +56,164 @@
         <!-- Canvas for capturing (hidden, shared between both camera modes) -->
         <canvas ref="canvasElement" class="hidden"></canvas>
 
-        <!-- Analysis Results Section -->
+        <!-- Analysis Results Section (Product) -->
         <AnalysisResults
           v-if="analysisResult"
           :result="analysisResult"
+          :criteria-images="criteriaImages"
           @reset="resetCamera"
         />
 
-        <!-- Detection Results Section -->
+        <!-- Person Input Section -->
+        <PersonInput
+          v-if="showPersonInput"
+          :detection-id="detectionResult?.detection_id"
+          :image-src="capturedImage"
+          :description="detectionResult?.description"
+          :confidence="detectionResult?.confidence"
+          @research="handlePersonResearch"
+          @reset="resetCamera"
+        />
+
+        <!-- Person Research Results Section -->
+        <PersonResults
+          v-if="personResearchResult"
+          :person-name="personResearchResult.person_name"
+          :fakeness-score="personResearchResult.fakeness_score"
+          :overall-assessment="personResearchResult.overall_assessment"
+          :summary="personResearchResult.summary"
+          :findings="personResearchResult.findings"
+          :red-flags="personResearchResult.red_flags"
+          :positive-notes="personResearchResult.positive_notes"
+          :statistics="personResearchResult.statistics"
+          :search-metadata="personResearchResult.search_metadata"
+          @reset="resetCamera"
+        />
+
+        <!-- Detection Results Section (Product) -->
         <DetectionResults
           v-if="showResults && detectionResult && !isCapturingCriteria && !analysisResult"
           ref="criteriaSection"
           :item="detectionResult.item"
           :detection-id="detectionResult.detection_id"
           :location-angles="detectionResult.location_angle"
+          :product-image="detectionResult.product_image"
+          :product-url="detectionResult.product_url"
+          :price-range="detectionResult.price_range"
           @continue="continueToCapture"
           @reset="resetCamera"
         />
 
+      </div>
+    </div>
+
+    <!-- Processing Overlay (for criteria fetching) -->
+    <div 
+      v-if="isProcessing && !isCameraActive && !showDetectionModal" 
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+    >
+      <div class="text-center text-white">
+        <div class="animate-spin rounded-full h-20 w-20 border-4 border-purple-500 border-t-transparent mx-auto mb-6"></div>
+        <p class="text-2xl font-semibold">{{ processingStep }}</p>
+        <p class="text-sm text-gray-300 mt-2">This may take a few moments...</p>
+      </div>
+    </div>
+
+    <!-- Detection Modal Popup -->
+    <div 
+      v-if="showDetectionModal && detectionResult" 
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4"
+      @click.self="closeDetectionModal"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all animate-modal-in">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-t-3xl">
+          <div class="flex items-center justify-between">
+            <h2 class="text-3xl font-bold">✨ Item Detected!</h2>
+            <button 
+              @click="closeDetectionModal" 
+              class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="p-8">
+          <!-- Product Info Card -->
+          <div class="mb-6 p-6 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 rounded-2xl border-2 border-purple-200">
+            <div class="flex flex-col md:flex-row gap-6 items-center">
+              <!-- Product Image -->
+              <div v-if="detectionResult.product_image" class="flex-shrink-0">
+                <img 
+                  :src="detectionResult.product_image" 
+                  :alt="detectionResult.item"
+                  class="w-40 h-40 object-cover rounded-xl shadow-lg border-4 border-white"
+                />
+              </div>
+              
+              <!-- Product Info -->
+              <div class="flex-1 text-center md:text-left">
+                <h3 class="text-xl font-semibold text-purple-900 mb-2">Detected Item</h3>
+                <p class="text-3xl font-bold text-purple-600 mb-4">{{ detectionResult.item }}</p>
+                
+                <!-- Price Range -->
+                <div v-if="detectionResult.price_range && (detectionResult.price_range[0] > 0 || detectionResult.price_range[1] > 0)" class="mb-4">
+                  <p class="text-xl font-semibold text-gray-700">
+                    💰 Price Range: 
+                    <span class="text-green-600">
+                      ${{ detectionResult.price_range[0].toFixed(2) }} - ${{ detectionResult.price_range[1].toFixed(2) }}
+                    </span>
+                  </p>
+                </div>
+                
+                <a 
+                  v-if="detectionResult.product_url" 
+                  :href="detectionResult.product_url" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 px-5 py-3 bg-purple-600 text-white font-semibold rounded-full hover:bg-purple-700 transition-all shadow-md hover:shadow-lg"
+                >
+                  <span>🌐 View Product Page</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-4 text-center border-t border-purple-200 pt-3">Detection ID: {{ detectionResult.detection_id }}</p>
+          </div>
+
+          <!-- Next Steps Preview -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">📸 Next Steps</h3>
+            <p class="text-gray-600 mb-4">Click "Proceed to Verify" to get the verification criteria for this item, or try again if this is not the correct item.</p>
+            
+            <div class="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-4 border-l-4 border-purple-600">
+              <p class="font-semibold text-purple-900 mb-2">🔍 What happens next:</p>
+              <p class="text-gray-800">We'll fetch the authentication criteria and guide you through capturing specific angles and features to verify if this item is authentic.</p>
+            </div>
+          </div>
+
+          <!-- Confirmation Buttons -->
+          <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <button 
+              @click="confirmAndProceed"
+              class="flex-1 sm:flex-none px-8 py-4 bg-purple-600 text-white text-lg font-semibold rounded-full hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              ✓ Proceed to Verify
+            </button>
+            <button 
+              @click="tryAgain"
+              class="flex-1 sm:flex-none px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 text-lg font-semibold rounded-full hover:bg-purple-50 transition-all duration-300"
+            >
+              🔄 Try Again
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -105,12 +237,15 @@ const stream = ref(null)
 const detectionResult = ref(null)
 const detectedItem = ref(null)
 const showResults = ref(false)
+const showDetectionModal = ref(false)
 const isCapturingCriteria = ref(false)
 const currentCriterionIndex = ref(0)
 const criteriaImages = ref([])
 const analysisResult = ref(null)
 const facingMode = ref('environment') // 'user' for front, 'environment' for back
 const cameraPermissionGranted = ref(false)
+const showPersonInput = ref(false)
+const personResearchResult = ref(null)
 
 const requestCameraPermission = async () => {
   try {
@@ -226,10 +361,13 @@ const resetCamera = () => {
   detectionResult.value = null
   detectedItem.value = null
   showResults.value = false
+  showDetectionModal.value = false
   isCapturingCriteria.value = false
   currentCriterionIndex.value = 0
   criteriaImages.value = []
   analysisResult.value = null
+  showPersonInput.value = false
+  personResearchResult.value = null
   stopCamera()
 }
 
@@ -249,7 +387,7 @@ const analyzeImage = async () => {
   if (!capturedImage.value) return
   
   isProcessing.value = true
-  processingStep.value = 'Detecting item...'
+  processingStep.value = 'Detecting...'
   
   try {
     // Step 1: Detect the item
@@ -285,20 +423,43 @@ const analyzeImage = async () => {
       return
     }
     
-    console.log('✅ Item detected:', detectResult.item)
+    console.log('✅ Item detected:', detectResult)
     
-    // Show detected item on screen immediately
-    detectedItem.value = detectResult.item
+    // Store detection result
+    detectionResult.value = detectResult
+    detectedItem.value = detectResult.item || detectResult.person_name
+    
     isProcessing.value = false
     
-    // Wait a moment for user to see the detected item
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Handle different item types
+    if (detectResult.item_type === 'person' && detectResult.awaiting_person_input) {
+      // Person detected - show input form
+      console.log('👤 Person detected - showing input form')
+      showPersonInput.value = true
+    } else {
+      // Product detected - show modal popup
+      showDetectionModal.value = true
+    }
     
-    // Step 2: Get criteria for the detected item
-    isProcessing.value = true
-    processingStep.value = 'Getting authentication criteria...'
-    
-    const criteriaResponse = await fetch(`${API_URL}/criteria/${detectResult.detection_id}`, {
+  } catch (error) {
+    console.error('Error analyzing image:', error)
+    alert(`❌ Error analyzing image. Make sure the backend is running at ${API_URL}`)
+    isProcessing.value = false
+  }
+}
+
+const closeDetectionModal = () => {
+  showDetectionModal.value = false
+}
+
+const confirmAndProceed = async () => {
+  showDetectionModal.value = false
+  isProcessing.value = true
+  processingStep.value = 'Getting authentication criteria...'
+  
+  try {
+    // Fetch criteria for the detected item
+    const criteriaResponse = await fetch(`${API_URL}/criteria/${detectionResult.value.detection_id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -319,9 +480,9 @@ const analyzeImage = async () => {
     
     console.log('✅ Criteria fetched:', criteriaResult.location_angle.length, 'items')
     
-    // Combine results for display
+    // Add criteria to detection result
     detectionResult.value = {
-      ...detectResult,
+      ...detectionResult.value,
       location_angle: criteriaResult.location_angle
     }
     
@@ -335,8 +496,57 @@ const analyzeImage = async () => {
     }
     
   } catch (error) {
-    console.error('Error analyzing image:', error)
-    alert(`❌ Error analyzing image. Make sure the backend is running at ${API_URL}`)
+    console.error('Error getting criteria:', error)
+    alert(`❌ Error getting criteria. Make sure the backend is running at ${API_URL}`)
+    isProcessing.value = false
+  }
+}
+
+const tryAgain = () => {
+  // Close modal and reset to try detection again
+  showDetectionModal.value = false
+  capturedImage.value = null
+  detectionResult.value = null
+  detectedItem.value = null
+  showResults.value = false
+  startCamera()
+}
+
+const handlePersonResearch = async (data) => {
+  isProcessing.value = true
+  processingStep.value = 'Researching person...'
+  
+  try {
+    const response = await fetch(`${API_URL}/research_person`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to research person')
+    }
+    
+    const result = await response.json()
+    
+    if (!result.success) {
+      alert(`❌ Error: ${result.error || 'Failed to research person'}`)
+      isProcessing.value = false
+      return
+    }
+    
+    console.log('✅ Person research complete:', result)
+    
+    // Store and display research results
+    personResearchResult.value = result.person_research
+    showPersonInput.value = false
+    isProcessing.value = false
+    
+  } catch (error) {
+    console.error('Error researching person:', error)
+    alert(`❌ Error researching person. Make sure the backend is running at ${API_URL}`)
     isProcessing.value = false
   }
 }
@@ -458,6 +668,21 @@ onUnmounted(() => {
   50% {
     opacity: 0.7;
   }
+}
+
+@keyframes modal-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-in {
+  animation: modal-in 0.3s ease-out forwards;
 }
 </style>
 

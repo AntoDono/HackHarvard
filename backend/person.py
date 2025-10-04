@@ -1,47 +1,70 @@
 import os
 from typing import Dict, Any
 from dotenv import load_dotenv
-from groq import Groq
+from google import genai
 from prompts.person import get_person_fakeness_prompt
 from llm_parser import parse_json_object
 
 load_dotenv()
 
 
-def create_groq_client() -> Groq:
-    """Create and return a Groq client."""
-    api_key = os.environ.get("GROQ_API_KEY")
+def create_gemini_client():
+    """Create and return a Gemini client."""
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError("GROQ_API_KEY not found in environment variables")
-    return Groq(api_key=api_key)
+        raise ValueError("GEMINI_API_KEY not found in environment variables")
+    return genai.Client(api_key=api_key)
 
 
-def call_groq_compound_model(client: Groq, prompt: str) -> str:
+def call_gemini_model(client, prompt: str) -> str:
     """
-    Call Groq's compound model with web search capabilities.
+    Call Gemini model with Google Search enabled.
     
     Args:
-        client: Groq client instance
+        client: Gemini client instance
         prompt: The prompt to send
         
     Returns:
         str: The model's response text
     """
-    response = client.chat.completions.create(
-        model="groq/compound",
-        messages=[{"role": "user", "content": prompt}],
-        compound_custom={
-            "tools": {
-                "enabled_tools": ["web_search", "browser_automation"]
-            }
-        }
+    from google.genai import types
+    
+    # Configure with Google Search tool
+    tools = [
+        types.Tool(googleSearch=types.GoogleSearch())
+    ]
+    
+    # Configure generation with tools
+    generate_content_config = types.GenerateContentConfig(
+        tools=tools,
+        thinking_config=types.ThinkingConfig(
+            thinking_budget=0,  # No extra thinking time needed
+        )
     )
-    return response.choices[0].message.content
+    
+    # Create content
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text=prompt),
+            ],
+        ),
+    ]
+    
+    # Call model with search capabilities
+    response = client.models.generate_content(
+        model="gemini-flash-latest",
+        contents=contents,
+        config=generate_content_config
+    )
+    
+    return response.text
 
 
 def parse_fakeness_results(response_text: str) -> Dict[str, Any]:
     """
-    Parse the JSON response from Groq.
+    Parse the JSON response from Gemini.
     
     Args:
         response_text: Raw text response from the model
@@ -72,14 +95,14 @@ def research_person_fakeness(name: str) -> Dict[str, Any]:
     """
     try:
         # Create client
-        client = create_groq_client()
+        client = create_gemini_client()
         
         # Generate prompt (includes instruction to limit to 10 searches)
         prompt = get_person_fakeness_prompt(name)
         
-        # Call Groq compound model
-        print(f"Researching {name} using Groq compound model (prompt instructs max 10 searches)...")
-        response_text = call_groq_compound_model(client, prompt)
+        # Call Gemini Flash Lite model
+        print(f"Researching {name}")
+        response_text = call_gemini_model(client, prompt)
         
         # Parse results
         results = parse_fakeness_results(response_text)
@@ -101,7 +124,7 @@ def research_person_fakeness(name: str) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     # Example usage
-    person_name = "Elon Musk"
+    person_name = "Donald Trump"
     
     print(f"Researching: {person_name}")
     print("=" * 50)

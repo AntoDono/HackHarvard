@@ -26,6 +26,12 @@ Carefully examine the images against these specific authentication criteria:
 
 # Task
 Based on the images and your expert visual analysis, evaluate whether the item is authentic or counterfeit.
+For EACH criterion, provide a confidence score from 1-5:
+- 5: Clearly authentic, matches expected quality perfectly
+- 4: Likely authentic, minor concerns but acceptable
+- 3: Uncertain, could go either way
+- 2: Likely counterfeit, notable quality issues
+- 1: Clearly counterfeit, obvious defects or wrong characteristics
 
 # Format
 Return your analysis as a JSON object:
@@ -35,12 +41,29 @@ Return your analysis as a JSON object:
     "criteria_results": [
         {{
             "criterion": "First criterion text",
+            "score": 1-5,
             "passed": true/false,
-            "notes": "Brief explanation of what you observed in the image and why you judged it this way"
+            "notes": "Brief explanation of what you observed in the image and why you gave this score",
+            "confidence_percentage": 0-100,
+            "visual_markers": ["marker1", "marker2"],
+            "comparison_notes": "How it compares to authentic versions"
         }},
         ...
     ],
-    "summary": "Overall assessment summary explaining your verdict based on visual observations"
+    "authentication_metrics": {{
+        "total_criteria_checked": number,
+        "criteria_passed": number,
+        "criteria_failed": number,
+        "average_score": number,
+        "confidence_distribution": {{"1": X, "2": Y, "3": Z, "4": A, "5": B}}
+    }},
+    "risk_assessment": {{
+        "counterfeit_probability": 0-100,
+        "risk_level": "low" / "medium" / "high" / "critical",
+        "key_concerns": ["concern1", "concern2"]
+    }},
+    "summary": "Overall assessment summary explaining your verdict based on visual observations",
+    "recommendations": ["Specific recommendations for further verification"]
 }}
 ```
 
@@ -48,7 +71,7 @@ Return your analysis as a JSON object:
 - Focus on qualitative visual observations from the images
 - Look for actual defects: wrong colors, poor stitching, blurry logos, cheap materials, incorrect patterns
 - Consider if features match what's expected (colors, patterns, materials, textures)
-- Only mark as counterfeit if you see clear quality issues or wrong characteristics
+- Give objective scores based on what you can actually see
+- Provide specific visual evidence for your scores
 - Be thorough and fair in your assessment
-- Provide specific visual evidence for your decisions
 """

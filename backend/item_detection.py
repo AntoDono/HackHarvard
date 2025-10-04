@@ -4,59 +4,50 @@ from google import genai
 from PIL import Image
 from dotenv import load_dotenv
 import json
-from typing import Dict
+from typing import Dict, Optional, List
+from prompts.item_detection import get_image_analysis_prompt, get_price_search_prompt
+from llm_parser import parse_json_object, parse_json_list
 
 load_dotenv()
 
-def analyze_product_from_image(image_path: str) -> Dict:
+def analyze_image(image_path: str, allow_repositioning: bool = True) -> Dict:
     """
-    Analyze a product image and return specific format:
-    - If high confidence product found: {"product": {...}}
-    - If repositioning needed: {"repositioning instructions": "..."}
+    Analyze an image to detect what it contains (person, product, text, or other).
     
     Args:
         image_path: Path to the image file
+        allow_repositioning: Whether to allow repositioning suggestions
         
     Returns:
-        Dict: Either product details or repositioning instructions
+        Dict with structure:
+        {
+            "type": "person" | "product" | "text" | "other",
+            "name": str,
+            "confidence": "High" | "Medium" | "Low",
+            "description": str,
+            "needs_repositioning": bool (optional),
+            "repositioning_instructions": str (optional)
+        }
     """
     try:
         # Check if image exists
         if not Path(image_path).exists():
-            return {"repositioning instructions": "Image file not found. Please provide a valid image path."}
+            raise FileNotFoundError(f"Image not found: {image_path}")
         
         # Get Gemini client
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            return {"repositioning instructions": "GEMINI_API_KEY not found in environment variables."}
+            raise ValueError("GEMINI_API_KEY not found in environment variables")
         
         client = genai.Client(api_key=api_key)
         
-        # Compact prompt for exact product identification
-        prompt = """Return ONLY valid JSON. Identify EXACT products (not generic). Use "N/A" for missing fields.
-
-        {
-          "detection_status": "success" | "needs_repositioning",
-          "repositioning_request": {"needed": true/false, "instructions": "specific instructions OR N/A", "reason": "reason OR N/A"},
-          "products": [{
-            "name": "EXACT product name OR N/A", "brand": "Brand OR N/A", "version": "Version/size OR N/A",
-            "category": "Category OR N/A", "description": "Description OR N/A", "price": "Price OR N/A",
-            "barcode": "Barcode OR N/A", "ingredients": "Ingredients OR N/A", "nutritional_info": "Nutrition OR N/A",
-            "size": "Size OR N/A", "color": "Color OR N/A", "material": "Material OR N/A",
-            "country_of_origin": "Origin OR N/A", "expiry_date": "Expiry OR N/A",
-            "confidence": "High|Medium|Low", "identification_certainty": "Percentage OR N/A"
-          }],
-          "image_quality": "Quality assessment", "visibility_issues": ["Issues"], "detection_notes": "Notes"
-        }
-
-        GOOD: "Coca-Cola Classic 12oz can" BAD: "soda"
-        If unclear: "needs_repositioning" with instructions like "Rotate to show label" or "Hold closer"
-        """
+        # Get analysis prompt
+        prompt = get_image_analysis_prompt(allow_repositioning)
         
         # Load and analyze image
         image = Image.open(image_path)
         response = client.models.generate_content(
-            model="gemini-flash-lite-latest",
+            model="gemini-2.0-flash-lite",
             contents=[prompt, image]
         )
         
@@ -67,46 +58,113 @@ def analyze_product_from_image(image_path: str) -> Dict:
         
         result = json.loads(response_text)
         
-        # Validate and fill missing fields for products
-        if "products" in result and result["products"]:
-            required_fields = [
-                "name", "brand", "version", "category", "description", "price", 
-                "barcode", "ingredients", "nutritional_info", "size", "color", 
-                "material", "country_of_origin", "expiry_date", "confidence", 
-                "identification_certainty"
-            ]
-            for product in result["products"]:
-                for field in required_fields:
-                    if field not in product or not product[field]:
-                        product[field] = "N/A"
+        return result
         
-        # Check detection status and confidence
-        detection_status = result.get("detection_status", "success")
-        products = result.get("products", [])
-        
-        # If repositioning is needed, return repositioning instructions
-        if detection_status == "needs_repositioning":
-            repo_req = result.get("repositioning_request", {})
-            instructions = repo_req.get("instructions", "Please adjust the product position for better visibility")
-            return {"repositioning instructions": instructions}
-        
-        # If no products found, return repositioning instructions
-        if not products:
-            return {"repositioning instructions": "No products detected. Please ensure the product is clearly visible in the image."}
-        
-        # Check for high or medium confidence products
-        confident_products = [p for p in products if p.get("confidence") in ["High", "Medium"]]
-        
-        if confident_products:
-            # Return the first confident product (prioritize High over Medium)
-            high_conf = [p for p in confident_products if p.get("confidence") == "High"]
-            product = high_conf[0] if high_conf else confident_products[0]
-            return {"product": product}
-        else:
-            # If only low confidence, return repositioning instructions
-            return {"repositioning instructions": "Product detected but with low confidence. Please provide a clearer image with better lighting and focus."}
-        
-    except json.JSONDecodeError:
-        return {"repositioning instructions": "AI response was not in valid format. Please try with a clearer image."}
     except Exception as e:
-        return {"repositioning instructions": f"Error analyzing image. Please ensure the image is clear and try again."}
+        return {
+            "type": "other",
+            "name": "Unknown",
+            "confidence": "Low",
+            "description": f"Error analyzing image: {str(e)}",
+            "needs_repositioning": False
+        }
+
+
+def get_price(product_name: str) -> List[float]:
+    """
+    Get the price range of an item using Gemini with web search.
+    
+    Args:
+        product_name: Full name of the product (e.g., "Nike Air Jordan 1 Retro High OG")
+        
+    Returns:
+        List[float]: [lower_price, upper_price] in USD
+            Returns [0, 0] if price information cannot be found
+            
+    Example:
+        >>> price_range = get_price("Apple iPhone 15 Pro Max 256GB")
+        >>> print(price_range)
+        [1199.0, 1299.0]
+    """
+    try:
+        from google.genai import types
+        
+        # Get Gemini API key
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            print("Warning: GEMINI_API_KEY not found in environment variables")
+            return [0, 0]
+        
+        # Create Gemini client
+        client = genai.Client(api_key=api_key)
+        
+        # Get prompt for price search
+        prompt = get_price_search_prompt(product_name)
+        
+        # Configure with Google Search tool
+        tools = [
+            types.Tool(googleSearch=types.GoogleSearch())
+        ]
+        
+        # Configure generation with tools
+        generate_content_config = types.GenerateContentConfig(
+            tools=tools,
+            thinking_config=types.ThinkingConfig(
+                thinking_budget=0,
+            )
+        )
+        
+        # Create content
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=prompt),
+                ],
+            ),
+        ]
+
+        # Call Gemini Flash Lite model with search
+        response = client.models.generate_content(
+            model="gemini-flash-latest",
+            contents=contents,
+            config=generate_content_config
+        )
+        
+        response_text = response.text
+
+        # Parse JSON response
+        result = parse_json_object(response_text)
+        
+        # Extract min and max prices
+        min_price = float(result.get("min_price", 0))
+        max_price = float(result.get("max_price", 0))
+        
+        return [min_price, max_price]
+        
+    except json.JSONDecodeError as e:
+        print(f"Error parsing price information: {str(e)}")
+        return [0, 0]
+    except Exception as e:
+        print(f"Error fetching price: {str(e)}")
+        return [0, 0]
+
+
+if __name__ == "__main__":
+    # Example usage
+    print("=" * 60)
+    print("Testing get_price function")
+    print("=" * 60)
+    
+    # Test with a sample product
+    product_name = "Apple iPhone 15 Pro Max 256GB"
+    print(f"\nSearching for price of: {product_name}")
+    print("-" * 60)
+    
+    price_range = get_price(product_name)
+    
+    print(f"\nPrice Range (USD): {price_range}")
+    print(f"Lower Price: ${price_range[0]}")
+    print(f"Upper Price: ${price_range[1]}")
+    
+    print("\n" + "=" * 60)

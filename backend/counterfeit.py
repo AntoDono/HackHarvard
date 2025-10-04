@@ -6,13 +6,9 @@ from PIL import Image
 from dotenv import load_dotenv
 from prompts.counterfeit import get_counterfeit_prompt
 from llm_parser import parse_json_object
-from sentence_transformers import SentenceTransformer
 import numpy as np
 
 load_dotenv()
-
-# Initialize CLIP model for objective scoring
-clip_model = SentenceTransformer('clip-ViT-B-32')
 
 def load_images(image_paths: List[str]) -> List[Image.Image]:
     """Load all images from paths."""
@@ -24,82 +20,18 @@ def load_images(image_paths: List[str]) -> List[Image.Image]:
             print(f"Warning: Image not found at {path}")
     return images
 
-def compute_image_embedding(image: Image.Image):
-    """Get CLIP embedding for an image."""
-    return clip_model.encode(image, convert_to_tensor=False)
-
-def compute_text_embedding(text: str):
-    """Get CLIP embedding for text."""
-    return clip_model.encode(text, convert_to_tensor=False)
-
-def compute_similarity(embedding1, embedding2) -> float:
-    """Calculate cosine similarity between two embeddings."""
-    similarity = np.dot(embedding1, embedding2) / (
-        np.linalg.norm(embedding1) * np.linalg.norm(embedding2)
-    )
-    return float(similarity)
-
-def cycle_list(lst: List, target_length: int) -> List:
-    """Cycle through a list to match target length."""
-    if not lst:
-        return []
-    result = []
-    for i in range(target_length):
-        result.append(lst[i % len(lst)])
-    return result
-
-def compute_scores_with_cycling(images: List[Image.Image], criteria: List[str]) -> List[float]:
-    """
-    Compute confidence scores, cycling through whichever list is shorter.
-    If images < criteria: cycle images
-    If criteria < images: cycle criteria
-    
-    Returns list of scores for each position.
-    """
-    num_images = len(images)
-    num_criteria = len(criteria)
-    
-    # Cycle whichever is shorter
-    if num_images < num_criteria:
-        print(f"  Cycling {num_images} images to match {num_criteria} criteria")
-        cycled_images = cycle_list(images, num_criteria)
-        cycled_criteria = criteria
-    elif num_criteria < num_images:
-        print(f"  Cycling {num_criteria} criteria to match {num_images} images")
-        cycled_images = images
-        cycled_criteria = cycle_list(criteria, num_images)
-    else:
-        # Equal length, no cycling needed
-        cycled_images = images
-        cycled_criteria = criteria
-    
-    # Compute scores
-    scores = []
-    for i, (image, criterion) in enumerate(zip(cycled_images, cycled_criteria)):
-        print(f"  Scoring pair {i+1}/{len(cycled_images)}...")
-        
-        # Get embeddings - use raw criteria text
-        image_embedding = compute_image_embedding(image)
-        criterion_embedding = compute_text_embedding(criterion)
-        
-        # Compute similarity
-        score = compute_similarity(image_embedding, criterion_embedding)
-        scores.append(score)
-    
-    return scores
 
 def analyze_authenticity(item: str, criteria: List[str], images: List[Image.Image]) -> str:
-    """Send images and criteria to Gemini for authentication analysis."""
+    """Send images and criteria to Gemini Flash Lite for authentication analysis with 1-5 scoring."""
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     
-    # Don't pass scores to LLM
     prompt = get_counterfeit_prompt(item, criteria)
     
     # Create content with prompt and all images
     contents = [prompt] + images
     
     response = client.models.generate_content(
-        model="gemini-flash-latest",
+        model="gemini-flash-lite-latest",
         contents=contents,
         config={
             "temperature": 0.2
@@ -112,23 +44,30 @@ def parse_results(response_text: str) -> Dict[str, Any]:
     """Parse the JSON response from Gemini."""
     return parse_json_object(response_text)
 
-def add_scores_to_results(results: Dict[str, Any], scores: List[float]) -> Dict[str, Any]:
-    """Add CLIP scores to the results."""
-    # Add overall confidence as average of all scores
-    results['overall_confidence'] = float(np.mean(scores))
-    
-    # Add individual scores to each criterion result
+def compute_confidence_from_scores(results: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert 1-5 scores to confidence percentages and add overall confidence."""
     if 'criteria_results' in results:
-        for i, criterion_result in enumerate(results['criteria_results']):
-            if i < len(scores):
-                criterion_result['confidence'] = scores[i]
+        scores = []
+        for criterion_result in results['criteria_results']:
+            # Convert 1-5 score to 0-1 confidence (1->0.2, 5->1.0)
+            score = criterion_result.get('score', 3)
+            confidence = score / 5.0
+            criterion_result['confidence'] = confidence
+            scores.append(confidence)
+        
+        # Add overall confidence as average
+        if scores:
+            results['overall_confidence'] = float(np.mean(scores))
+        else:
+            results['overall_confidence'] = 0.0
+    else:
+        results['overall_confidence'] = 0.0
     
     return results
 
 def counterfeit(item: str, criteria_data: Dict[str, List[str]], images: List[str]) -> Dict[str, Any]:
     """
-    Detect if an item is counterfeit based on images and criteria.
-    Cycles through whichever list is shorter (images or criteria).
+    Detect if an item is counterfeit based on images and criteria using Gemini Flash Lite scoring.
     
     Args:
         item: The item name/type being authenticated
@@ -138,8 +77,8 @@ def counterfeit(item: str, criteria_data: Dict[str, List[str]], images: List[str
     Returns:
         Dict containing:
             - is_authentic: bool
-            - overall_confidence: float (CLIP-based)
-            - criteria_results: list of criterion evaluations with confidence scores
+            - overall_confidence: float (converted from 1-5 scores)
+            - criteria_results: list of criterion evaluations with scores (1-5) and confidence (0-1)
             - summary: str
     """
     # Extract just the criteria (not location_angle)
@@ -164,24 +103,15 @@ def counterfeit(item: str, criteria_data: Dict[str, List[str]], images: List[str
             "summary": "Error: No valid images provided"
         }
     
-    # Compute CLIP-based confidence scores (with cycling)
-    print(f"Computing CLIP confidence scores ({len(loaded_images)} images vs {len(criteria)} criteria)...")
-    clip_scores = compute_scores_with_cycling(loaded_images, criteria)
-    
-    # Print scores
-    print("\nCLIP Similarity Scores:")
-    for i, score in enumerate(clip_scores):
-        print(f"  Pair {i+1}: {score:.3f}")
-    
-    # Analyze with Gemini (for qualitative assessment - no scores passed)
-    print("\nAnalyzing with Gemini...")
+    # Analyze with Gemini Flash Lite (includes 1-5 scoring)
+    print(f"\nAnalyzing {len(loaded_images)} image(s) with {len(criteria)} criteria using Gemini Flash Lite...")
     response_text = analyze_authenticity(item, criteria, loaded_images)
     
     # Parse results
     results = parse_results(response_text)
     
-    # Add CLIP scores to results
-    results = add_scores_to_results(results, clip_scores)
+    # Convert 1-5 scores to confidence values and add overall confidence
+    results = compute_confidence_from_scores(results)
     
     return results
 
@@ -208,7 +138,7 @@ if __name__ == "__main__":
     # Analyze images - will cycle if lengths don't match
     image_paths = ["./test_materials/lv.png"]  # Can be different length than criteria
     
-    print(f"\nAnalyzing {len(image_paths)} image(s) vs {len(auth_criteria)} criteria...")
+    print(f"\nAnalyzing {len(image_paths)} image(s) with {len(auth_criteria)} criteria...")
     result = counterfeit(item_name, criteria_data, image_paths)
     
     print("\n" + "="*50)
@@ -221,7 +151,8 @@ if __name__ == "__main__":
     print("\nCriteria Results:")
     for cr in result.get('criteria_results', []):
         status = "✓" if cr.get('passed') else "✗"
+        score = cr.get('score', 0)
         confidence = cr.get('confidence', 0)
         print(f"  {status} {cr.get('criterion')}")
-        print(f"    Confidence: {confidence:.2%}")
+        print(f"    Score: {score}/5 (Confidence: {confidence:.2%})")
         print(f"    Notes: {cr.get('notes')}")

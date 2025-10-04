@@ -759,7 +759,7 @@ def main():
     print("🔍 GOOGLE LENS COUNTERFEIT DETECTION")
     print("=" * 80)
     
-    image_url = "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400"
+    image_url = "https://rqdnvzhjqdrmfwntcanq.supabase.co/storage/v1/object/public/image/labubu.png"
     print(f"\nSearching for: {image_url}")
     
     results = searcher.search_by_image_url(image_url, max_results=10)

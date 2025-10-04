@@ -5,10 +5,12 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
-from item_detection import analyze_product_from_image
+from item_detection import analyze_image, get_price
 from criteria import criteria as get_criteria
 from counterfeit import counterfeit
 from generate_real_images import ReverseImageSearcher
+from upload_image import upload_image_to_supabase
+from person import research_person_fakeness
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
@@ -16,6 +18,7 @@ CORS(app)  # Enable CORS for frontend communication
 # Create uploads directory if it doesn't exist
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
+SEARCHER = ReverseImageSearcher()
 
 DETECT_TASKS = {}
 
@@ -69,39 +72,43 @@ def detect():
         
         print(f"✅ Image saved: {filepath}")
         
-        # Use item_detection.py to analyze the item
-        detection_result = analyze_product_from_image(str(filepath))
+        # Use item_detection.py to analyze the image
+        detection_result = analyze_image(str(filepath), allow_repositioning=False)
         
         # Check if repositioning is needed
-        if "repositioning instructions" in detection_result:
+        if detection_result.get("needs_repositioning"):
             response = {
                 "success": False,
                 "needs_repositioning": True,
-                "repositioning_instructions": detection_result["repositioning instructions"],
+                "repositioning_instructions": detection_result.get("repositioning_instructions", "Please reposition the image"),
                 "filename": filename
             }
             return jsonify(response), 200
         
-        # Product detected successfully
-        product = detection_result.get("product", {})
-        item_name = f"{product.get('brand', '')} {product.get('name', '')}".strip()
+        # Get the detected item information
+        item_type = detection_result.get("type", "other")
+        item_name = detection_result.get("name", "")
+        print(f"✅ Detected item type: {item_type}")
+        print(f"✅ Detected item name: {item_name}")
         
         if not item_name:
             return jsonify({
                 "success": False,
-                "error": "Could not identify the product"
+                "error": "Could not identify the item in the image"
             }), 400
         
         # Generate unique detection_id
         detection_id = str(uuid.uuid4())
         
-        # Use reverse image search to find product URL and images
-        product_url = None
-        product_image = None
-        try:
-            print(f"🔍 Searching for product info using reverse image search...")
-            searcher = ReverseImageSearcher()
-            search_results = searcher.search_by_local_image(str(filepath), max_results=10)
+        # Branch based on detected type
+        if item_type == "product":
+            print("🛍️  Product detected - following product workflow")
+            
+            # Use reverse image search to find product URL and images
+            product_url = None
+            product_image = None
+            uploaded_image_url = upload_image_to_supabase(str(filepath))    
+            search_results = SEARCHER.search_by_image_url(uploaded_image_url, max_results=10)
             
             if search_results:
                 # Get top result with highest trust score
@@ -113,31 +120,138 @@ def detect():
                 print(f"✅ Found product image: {product_image}")
             else:
                 print("⚠️  No search results found")
-        except Exception as e:
-            print(f"⚠️  Error in reverse image search: {e}")
-            # Continue without product URL/image if search fails
+            
+            price_range = get_price(item_name)
         
-        # Store basic detection data (without criteria yet)
-        DETECT_TASKS[detection_id] = {
-            "item": item_name,
-            "item_detection_image": str(filepath),
-            "product_details": product,
-            "product_url": product_url,
-            "product_image": product_image,
-            "criteria": None,
-            "location_angle": None
-        }
+            # Store basic detection data (without criteria yet)
+            DETECT_TASKS[detection_id] = {
+                "item": item_name,
+                "item_type": item_type,
+                "item_detection_image": str(filepath),
+                "detection_details": detection_result,
+                "product_url": product_url,
+                "product_image": product_image,
+                "price_range": price_range,
+                "criteria": None,
+                "location_angle": None
+            }
+            
+            # Return detection info with product URL, image, and price range
+            response = {
+                "success": True,
+                "detection_id": detection_id,
+                "item": item_name,
+                "item_type": item_type,
+                "confidence": detection_result.get("confidence", "Unknown"),
+                "description": detection_result.get("description", ""),
+                "product_url": product_url,
+                "product_image": product_image,
+                "price_range": price_range,
+                "filename": filename
+            }
+            
+            return jsonify(response), 200
+            
+        elif item_type == "person":
+            print("👤 Person detected - waiting for user to provide name")
+            
+            # Store basic detection data (waiting for user input)
+            DETECT_TASKS[detection_id] = {
+                "item": item_name,
+                "item_type": item_type,
+                "item_detection_image": str(filepath),
+                "detection_details": detection_result,
+                "awaiting_person_input": True
+            }
+            
+            # Return detection info and prompt for user input
+            response = {
+                "success": True,
+                "detection_id": detection_id,
+                "item_type": item_type,
+                "confidence": detection_result.get("confidence", "Unknown"),
+                "description": detection_result.get("description", ""),
+                "image_path": filename,
+                "awaiting_person_input": True,
+                "message": "Person detected. Please provide their name and any additional information."
+            }
+            
+            return jsonify(response), 200
+            
+        elif item_type == "text":
+            print("📄 Text/document detected - workflow not yet implemented")
+            
+            # TODO: Implement text/document analysis workflow
+            return jsonify({
+                "success": False,
+                "error": "Text/document analysis is not yet supported",
+                "item_type": item_type,
+                "item": item_name
+            }), 501  # 501 Not Implemented
+            
+        else:  # "other"
+            print("❓ Other content detected - workflow not supported")
+            
+            return jsonify({
+                "success": False,
+                "error": "This type of content is not supported for analysis",
+                "item_type": item_type,
+                "item": item_name
+            }), 400
         
-        # Return detection info with product URL and image
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/research_person', methods=['POST'])
+def research_person():
+    """
+    Research a person after user provides their name.
+    Expects JSON with detection_id, person_name, and optional additional_info.
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'detection_id' not in data or 'person_name' not in data:
+            return jsonify({"error": "Missing detection_id or person_name"}), 400
+        
+        detection_id = data['detection_id']
+        person_name = data['person_name']
+        additional_info = data.get('additional_info', '')
+        
+        # Check if detection_id exists
+        if detection_id not in DETECT_TASKS:
+            return jsonify({"error": "Detection ID not found"}), 404
+        
+        task = DETECT_TASKS[detection_id]
+        
+        # Verify this is a person detection
+        if task.get("item_type") != "person":
+            return jsonify({"error": "This detection is not for a person"}), 400
+        
+        print(f"🔍 Researching person: {person_name}")
+        if additional_info:
+            print(f"📝 Additional context: {additional_info}")
+        
+        # Combine person_name with additional_info for more context
+        search_query = f"{person_name} {additional_info}".strip()
+        
+        # Research the person using person.py
+        person_research = research_person_fakeness(search_query)
+        
+        # Update task with research results
+        DETECT_TASKS[detection_id]["person_name"] = person_name
+        DETECT_TASKS[detection_id]["additional_info"] = additional_info
+        DETECT_TASKS[detection_id]["person_research"] = person_research
+        DETECT_TASKS[detection_id]["awaiting_person_input"] = False
+        
+        # Return research results
         response = {
             "success": True,
             "detection_id": detection_id,
-            "item": item_name,
-            "product_name": item_name,
-            "product_url": product_url,
-            "product_image": product_image,
-            "product_details": product,
-            "filename": filename
+            "person_name": person_name,
+            "person_research": person_research
         }
         
         return jsonify(response), 200
@@ -150,7 +264,7 @@ def detect():
 @app.route('/criteria/<detection_id>', methods=['GET'])
 def get_criteria_for_detection(detection_id):
     """
-    Step 2: Get authentication criteria for a detected item.
+    Step 2: Get authentication criteria for a detected item (product workflow).
     """
     try:
         # Check if detection_id exists
@@ -162,7 +276,6 @@ def get_criteria_for_detection(detection_id):
         
         # Get criteria if not already cached in the task
         if task["criteria"] is None:
-            print(f"Getting criteria for: {item_name}")
             criteria_data = get_criteria(item_name)
             
             # Update task with criteria

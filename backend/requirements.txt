@@ -24,3 +24,4 @@ groq
 sentence-transformers
 flask
 flask-cors
+supabase>=2.0.0

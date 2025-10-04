@@ -2,7 +2,7 @@ import os
 import sqlite3
 import json
 import numpy as np
-from groq import Groq
+from google import genai
 from dotenv import load_dotenv
 from prompts.criteria import get_criteria_prompt
 from llm_parser import parse_json_object
@@ -81,28 +81,48 @@ def get_cached_criteria(item: str):
     return None
 
 def search_online_criteria(item: str):
-    """Use Groq Compound to search online for criteria."""
-    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    """Use Gemini Flash Lite with Google Search to find authentic criteria online."""
+    from google.genai import types
+    
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY not found in environment variables")
+    
+    client = genai.Client(api_key=api_key)
     
     prompt = get_criteria_prompt(item)
-
-    response = client.chat.completions.create(
-        model="groq/compound",
-        messages=[
-            {"role": "user", "content": prompt}
-        ],
-        compound_custom={
-            "tools": {
-                "enabled_tools": ["web_search", "browser_automation"]
-            }
-        },
-        temperature=0.2
+    
+    # Configure with Google Search tool
+    tools = [
+        types.Tool(googleSearch=types.GoogleSearch())
+    ]
+    
+    # Configure generation with tools
+    generate_content_config = types.GenerateContentConfig(
+        tools=tools,
+        thinking_config=types.ThinkingConfig(
+            thinking_budget=0,
+        )
     )
     
-    content = response.choices[0].message.content
+    # Create content
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text=prompt),
+            ],
+        ),
+    ]
     
-    if hasattr(response.choices[0].message, 'executed_tools'):
-        print("Web search tool used.")
+    # Call model with search capabilities
+    response = client.models.generate_content(
+        model="gemini-flash-lite-latest",
+        contents=contents,
+        config=generate_content_config
+    )
+    
+    content = response.text
     
     # Parse JSON object with criteria and location_angle
     criteria_data = parse_json_object(content)
@@ -115,7 +135,7 @@ def search_online_criteria(item: str):
 def criteria(item: str):
     """
     Get authentication criteria for an item.
-    First checks cache, then uses Groq Compound for online search.
+    First checks cache, then uses Gemini Flash Lite for online search.
     
     Args:
         item: The name/type of item to check
