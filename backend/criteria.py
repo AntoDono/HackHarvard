@@ -5,7 +5,7 @@ import numpy as np
 from groq import Groq
 from dotenv import load_dotenv
 from prompts.criteria import get_criteria_prompt
-from llm_parser import parse_json_list
+from llm_parser import parse_json_object
 from sentence_transformers import SentenceTransformer
 import time
 
@@ -26,7 +26,7 @@ def init_cache():
         CREATE TABLE IF NOT EXISTS criteria_cache (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             item TEXT NOT NULL,
-            criteria TEXT NOT NULL,
+            criteria_data TEXT NOT NULL,
             embedding BLOB NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -34,17 +34,17 @@ def init_cache():
     conn.commit()
     conn.close()
 
-def cache_criteria(item: str, criteria: list):
-    """Store criteria in cache with embedding."""
+def cache_criteria(item: str, criteria_data: dict):
+    """Store criteria data (with locations) in cache with embedding."""
     # Generate embedding for the item
     embedding = model.encode(item)
     
     conn = sqlite3.connect(CACHE_DB)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO criteria_cache (item, criteria, embedding)
+        INSERT INTO criteria_cache (item, criteria_data, embedding)
         VALUES (?, ?, ?)
-    ''', (item, json.dumps(criteria), embedding.tobytes()))
+    ''', (item, json.dumps(criteria_data), embedding.tobytes()))
     conn.commit()
     conn.close()
 
@@ -55,7 +55,7 @@ def get_cached_criteria(item: str):
     
     conn = sqlite3.connect(CACHE_DB)
     cursor = conn.cursor()
-    cursor.execute('SELECT item, criteria, embedding FROM criteria_cache')
+    cursor.execute('SELECT item, criteria_data, embedding FROM criteria_cache')
     rows = cursor.fetchall()
     conn.close()
     
@@ -99,12 +99,13 @@ def search_online_criteria(item: str):
     if hasattr(response.choices[0].message, 'executed_tools'):
         print("Web search tool used.")
     
-    criteria_list = parse_json_list(content)
+    # Parse JSON object with criteria and location_angle
+    criteria_data = parse_json_object(content)
     
     # Cache the results
-    cache_criteria(item, criteria_list)
+    cache_criteria(item, criteria_data)
     
-    return criteria_list
+    return criteria_data
 
 def criteria(item: str):
     """
@@ -115,7 +116,10 @@ def criteria(item: str):
         item: The name/type of item to check
     
     Returns:
-        list: A list of 5 specific details to look for when identifying counterfeits
+        dict: {
+            "criteria": List[str],
+            "location_angle": List[str]
+        }
     """
     # Initialize cache if needed
     init_cache()
@@ -138,9 +142,13 @@ if __name__ == "__main__":
     
     authentication_criteria = criteria(item_name)
     
-    for i, criterion in enumerate(authentication_criteria, 1):
+    print(f"\nCriteria ({len(authentication_criteria.get('criteria', []))} items):")
+    for i, (criterion, location) in enumerate(zip(
+        authentication_criteria.get('criteria', []),
+        authentication_criteria.get('location_angle', [])
+    ), 1):
         print(f"{i}. {criterion}")
-
+        print(f"   📍 {location}")
+    
     time_elapsed = time.time() - time_now
-    print(f"Time elapsed: {time_elapsed} seconds")
-
+    print(f"\nTime elapsed: {time_elapsed} seconds")

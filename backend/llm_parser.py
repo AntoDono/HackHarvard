@@ -74,6 +74,7 @@ def parse_json_object(text: str) -> Dict[str, Any]:
         ValueError: If no valid JSON object is found
     """
     # First try to find ```json code block
+    print(text)
     json_pattern = r'```json\s*\n(.*?)\n```'
     match = re.search(json_pattern, text, re.DOTALL)
     
