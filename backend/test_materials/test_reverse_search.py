@@ -71,6 +71,7 @@ def test_exact_matching():
                 print(f"   Title: {result['title']}")
                 print(f"   {trust_indicator} Source: {result['source']} (Trust: {result['trust_score']:.2f})")
                 print(f"   🔗 Link: {result['link']}")
+                print(f"   🖼️  bbnail: {result.get('thumbnail', 'Not available')}")
                 
                 if result.get('price'):
                     print(f"   💰 Price: {result['price']}")
@@ -89,6 +90,7 @@ def test_exact_matching():
                 for r in high_trust[:3]:
                     print(f"   • {r['source']} - {r['title'][:50]}")
                     print(f"     Link: {r['link']}")
+                    print(f"     Thumbnail: {r.get('thumbnail', 'Not available')}")
             
             if exact_matches:
                 print(f"\n🎯 {len(exact_matches)} EXACT MATCHES FOUND:")
@@ -181,6 +183,7 @@ def test_custom_exact_matching():
                 print(f"\n{i}. [{match_type}] {result['title'][:60]}")
                 print(f"   {trust_emoji} {result['source']} (Trust: {result['trust_score']:.2f})")
                 print(f"   🔗 {result['link']}")
+                print(f"   🖼️  Thumbnail: {result.get('thumbnail', 'Not available')}")
                 
                 if result.get('price'):
                     print(f"   💰 {result['price']}")
