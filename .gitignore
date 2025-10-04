@@ -10,6 +10,4 @@ backend/uploads/*
 .DS_Store
 
 # AI Detection Models (large files, download separately)
-backend/ai_detection/models/
 backend/ai_detection/temp/
-models/
