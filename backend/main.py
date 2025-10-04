@@ -241,14 +241,39 @@ def detect():
             return jsonify(response), 200
             
         else:  # "other"
-            print("❓ Other content detected - workflow not supported")
+            print("❓ Other content detected - using Gemini analysis as fallback")
             
-            return jsonify({
-                "success": False,
-                "error": "This type of content is not supported for analysis",
+            # Use Gemini to analyze the image
+            from ai_content import analyze_other_content
+            gemini_analysis = analyze_other_content(str(filepath), item_name)
+            
+            # Log the analysis
+            print(f"✅ Gemini Analysis: {gemini_analysis.get('title', 'N/A')}")
+            print(f"   Category: {gemini_analysis.get('category', 'Unknown')}")
+            print(f"   Description: {gemini_analysis.get('description', 'N/A')[:100]}...")
+            
+            # Store detection data
+            DETECT_TASKS[detection_id] = {
+                "item": item_name,
                 "item_type": item_type,
-                "item": item_name
-            }), 400
+                "item_detection_image": str(filepath),
+                "detection_details": detection_result,
+                "gemini_analysis": gemini_analysis
+            }
+            
+            # Return success with basic info (frontend doesn't need to handle this specially)
+            response = {
+                "success": True,
+                "detection_id": detection_id,
+                "item": item_name,
+                "item_type": item_type,
+                "confidence": detection_result.get("confidence", "Unknown"),
+                "description": gemini_analysis.get("description", detection_result.get("description", "")),
+                "filename": filename,
+                "message": f"Analyzed: {gemini_analysis.get('title', item_name)}"
+            }
+            
+            return jsonify(response), 200
         
     except Exception as e:
         print(f"❌ Error: {str(e)}")
