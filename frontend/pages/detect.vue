@@ -22,12 +22,15 @@
 
         <!-- Camera Section for Initial Detection -->
         <CameraView
-          v-if="!isCapturingCriteria && !showResults && !analysisResult && !showPersonInput && !personResearchResult"
+          v-if="!isCapturingCriteria && !showResults && !analysisResult && !showPersonInput && !personResearchResult && !factCheckResult"
           ref="cameraViewRef"
           :captured-image="capturedImage"
           :is-camera-active="isCameraActive"
           :is-processing="isProcessing"
           :processing-step="processingStep"
+          :zoom-level="zoomLevel"
+          :min-zoom="minZoom"
+          :max-zoom="maxZoom"
           @start-camera="startCamera"
           @stop-camera="stopCamera"
           @capture="capturePhoto"
@@ -35,6 +38,9 @@
           @analyze="analyzeImage"
           @flip-camera="flipCamera"
           @file-upload="handleFileUpload"
+          @zoom-in="zoomIn"
+          @zoom-out="zoomOut"
+          @reset-zoom="resetZoom"
         />
 
         <!-- Criteria Capture Section -->
@@ -48,10 +54,16 @@
           :is-camera-active="isCameraActive"
           :is-processing="isProcessing"
           :processing-step="processingStep"
+          :zoom-level="zoomLevel"
+          :min-zoom="minZoom"
+          :max-zoom="maxZoom"
           @capture="captureCriterionPhoto"
           @retake-previous="retakeCriterionPhoto"
           @cancel="resetCamera"
           @flip-camera="flipCamera"
+          @zoom-in="zoomIn"
+          @zoom-out="zoomOut"
+          @reset-zoom="resetZoom"
         />
 
         <!-- Canvas for capturing (hidden, shared between both camera modes) -->
@@ -91,6 +103,19 @@
           @reset="resetCamera"
         />
 
+        <!-- Fact Check Results Section (Text) -->
+        <FactCheckResults
+          v-if="factCheckResult"
+          :image-type="factCheckResult.image_type"
+          :contains-factual-claims="factCheckResult.contains_factual_claims"
+          :overall-verdict="factCheckResult.overall_verdict"
+          :confidence-score="factCheckResult.confidence_score"
+          :claims="factCheckResult.claims"
+          :summary="factCheckResult.summary"
+          :important-notes="factCheckResult.important_notes"
+          @reset="resetCamera"
+        />
+
         <!-- Detection Results Section (Product) -->
         <DetectionResults
           v-if="showResults && detectionResult && !isCapturingCriteria && !analysisResult"
@@ -113,11 +138,7 @@
       v-if="isProcessing && !isCameraActive && !showDetectionModal" 
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
     >
-      <div class="text-center text-white">
-        <div class="animate-spin rounded-full h-20 w-20 border-4 border-purple-500 border-t-transparent mx-auto mb-6"></div>
-        <p class="text-2xl font-semibold">{{ processingStep }}</p>
-        <p class="text-sm text-gray-300 mt-2">This may take a few moments...</p>
-      </div>
+      <LoadingAnimation :message="processingStep" />
     </div>
 
     <!-- Detection Modal Popup -->
@@ -222,6 +243,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import LoadingAnimation from '~/components/LoadingAnimation.vue'
 
 const config = useRuntimeConfig()
 const API_URL = config.public.apiUrl
@@ -247,6 +269,10 @@ const facingMode = ref('environment') // 'user' for front, 'environment' for bac
 const cameraPermissionGranted = ref(false)
 const showPersonInput = ref(false)
 const personResearchResult = ref(null)
+const factCheckResult = ref(null)
+const zoomLevel = ref(1)
+const minZoom = ref(1)
+const maxZoom = ref(3)
 
 const requestCameraPermission = async () => {
   try {
@@ -268,6 +294,40 @@ const requestCameraPermission = async () => {
   }
 }
 
+const applyZoom = async (level) => {
+  if (!stream.value) return
+  
+  const track = stream.value.getVideoTracks()[0]
+  const capabilities = track.getCapabilities()
+  
+  if (capabilities.zoom) {
+    minZoom.value = capabilities.zoom.min
+    maxZoom.value = capabilities.zoom.max
+    
+    // Clamp zoom level to valid range
+    const clampedZoom = Math.max(minZoom.value, Math.min(maxZoom.value, level))
+    zoomLevel.value = clampedZoom
+    
+    await track.applyConstraints({
+      advanced: [{ zoom: clampedZoom }]
+    })
+  }
+}
+
+const zoomIn = async () => {
+  const newZoom = Math.min(maxZoom.value, zoomLevel.value + 0.5)
+  await applyZoom(newZoom)
+}
+
+const zoomOut = async () => {
+  const newZoom = Math.max(minZoom.value, zoomLevel.value - 0.5)
+  await applyZoom(newZoom)
+}
+
+const resetZoom = async () => {
+  await applyZoom(1)
+}
+
 const startCamera = async () => {
   try {
     // Check if we have permission first
@@ -287,6 +347,16 @@ const startCamera = async () => {
     }
     
     stream.value = await navigator.mediaDevices.getUserMedia(constraints)
+    
+    // Get zoom capabilities
+    const track = stream.value.getVideoTracks()[0]
+    const capabilities = track.getCapabilities()
+    
+    if (capabilities.zoom) {
+      minZoom.value = capabilities.zoom.min
+      maxZoom.value = capabilities.zoom.max
+      zoomLevel.value = capabilities.zoom.min || 1
+    }
     
     // Set camera active first to show video element
     isCameraActive.value = true
@@ -369,6 +439,7 @@ const resetCamera = () => {
   analysisResult.value = null
   showPersonInput.value = false
   personResearchResult.value = null
+  factCheckResult.value = null
   stopCamera()
 }
 
@@ -437,6 +508,10 @@ const analyzeImage = async () => {
       // Person detected - show input form
       console.log('👤 Person detected - showing input form')
       showPersonInput.value = true
+    } else if (detectResult.item_type === 'text' && detectResult.fact_check) {
+      // Text/document detected - show fact check results
+      console.log('📄 Text detected - showing fact check results')
+      factCheckResult.value = detectResult.fact_check
     } else {
       // Product detected - show modal popup
       showDetectionModal.value = true

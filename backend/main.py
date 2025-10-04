@@ -5,12 +5,15 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
+import requests
 from item_detection import analyze_image, get_price
 from criteria import criteria as get_criteria
 from counterfeit import counterfeit
 from generate_real_images import ReverseImageSearcher
 from upload_image import upload_image_to_supabase
 from person import research_person_fakeness
+from fact_check import fact_check
+from image_similarity_scores import ComparisonAnalyzer
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
@@ -19,8 +22,24 @@ CORS(app)  # Enable CORS for frontend communication
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 SEARCHER = ReverseImageSearcher()
+SIMILARITY_ANALYZER = ComparisonAnalyzer()
 
 DETECT_TASKS = {}
+
+def download_image(url: str, save_path: Path) -> bool:
+    """Download an image from URL and save it to the specified path."""
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        
+        with open(save_path, 'wb') as f:
+            f.write(response.content)
+        
+        print(f"✅ Downloaded image from {url} to {save_path}")
+        return True
+    except Exception as e:
+        print(f"❌ Failed to download image from {url}: {str(e)}")
+        return False
 
 # {
 #   "detection_id": { 
@@ -107,6 +126,7 @@ def detect():
             # Use reverse image search to find product URL and images
             product_url = None
             product_image = None
+            product_image_path = None
             uploaded_image_url = upload_image_to_supabase(str(filepath))    
             search_results = SEARCHER.search_by_image_url(uploaded_image_url, max_results=10)
             
@@ -118,6 +138,17 @@ def detect():
                 
                 print(f"✅ Found product URL: {product_url}")
                 print(f"✅ Found product image: {product_image}")
+                
+                # Download the product image
+                if product_image:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                    product_filename = f"product_{detection_id}_{timestamp}.jpg"
+                    product_image_path = UPLOAD_DIR / product_filename
+                    
+                    if download_image(product_image, product_image_path):
+                        product_image_path = str(product_image_path)
+                    else:
+                        product_image_path = None
             else:
                 print("⚠️  No search results found")
             
@@ -131,6 +162,7 @@ def detect():
                 "detection_details": detection_result,
                 "product_url": product_url,
                 "product_image": product_image,
+                "product_image_path": product_image_path,
                 "price_range": price_range,
                 "criteria": None,
                 "location_angle": None,
@@ -180,15 +212,33 @@ def detect():
             return jsonify(response), 200
             
         elif item_type == "text":
-            print("📄 Text/document detected - workflow not yet implemented")
+            print("📄 Text/document detected - performing fact check")
             
-            # TODO: Implement text/document analysis workflow
-            return jsonify({
-                "success": False,
-                "error": "Text/document analysis is not yet supported",
+            # Perform fact check on the image
+            fact_check_result = fact_check(str(filepath))
+            
+            # Store detection data
+            DETECT_TASKS[detection_id] = {
+                "item": item_name,
                 "item_type": item_type,
-                "item": item_name
-            }), 501  # 501 Not Implemented
+                "item_detection_image": str(filepath),
+                "detection_details": detection_result,
+                "fact_check_result": fact_check_result
+            }
+            
+            # Return fact check results
+            response = {
+                "success": True,
+                "detection_id": detection_id,
+                "item": item_name,
+                "item_type": item_type,
+                "confidence": detection_result.get("confidence", "Unknown"),
+                "description": detection_result.get("description", ""),
+                "filename": filename,
+                "fact_check": fact_check_result
+            }
+            
+            return jsonify(response), 200
             
         else:  # "other"
             print("❓ Other content detected - workflow not supported")
@@ -358,6 +408,32 @@ def analyze_item(detection_id: str):
         # Add the original detection image to the analysis
         all_images = [task["item_detection_image"]] + saved_image_paths
         
+        # Calculate initial scan similarity between product image and detection image
+        initial_scan = None
+        if task.get("product_image_path") and os.path.exists(task["product_image_path"]):
+            try:
+                print(f"🔍 Calculating similarity between product image and detection image...")
+                similarity_result = SIMILARITY_ANALYZER.compare_images(
+                    task["product_image_path"],
+                    task["item_detection_image"],
+                    threshold=0.7
+                )
+                
+                if "error" not in similarity_result:
+                    initial_scan = {
+                        "similarity_score": similarity_result.get("similarity_score", 0),
+                        "match_status": similarity_result.get("match_status", "UNKNOWN"),
+                        "confidence": similarity_result.get("analysis", {}).get("confidence", "Unknown"),
+                        "interpretation": similarity_result.get("analysis", {}).get("interpretation", ""),
+                        "recommendation": similarity_result.get("analysis", {}).get("recommendation", ""),
+                        "counterfeit_risk": similarity_result.get("analysis", {}).get("counterfeit_risk", "Unknown")
+                    }
+                    print(f"✅ Initial scan similarity: {initial_scan['similarity_score']:.3f}")
+                else:
+                    print(f"⚠️  Similarity calculation error: {similarity_result.get('error')}")
+            except Exception as e:
+                print(f"⚠️  Failed to calculate similarity: {str(e)}")
+        
         # Use counterfeit.py to analyze
         print(f"Analyzing {task['item']} with {len(all_images)} images...")
         analysis_result = counterfeit(task["item"], criteria_data, all_images)
@@ -365,6 +441,7 @@ def analyze_item(detection_id: str):
         # Store results in task
         DETECT_TASKS[detection_id]["analysis_result"] = analysis_result
         DETECT_TASKS[detection_id]["criteria_images"] = saved_image_paths
+        DETECT_TASKS[detection_id]["initial_scan"] = initial_scan
         
         # Return the results
         response = {
@@ -374,7 +451,8 @@ def analyze_item(detection_id: str):
             "is_authentic": analysis_result.get("is_authentic"),
             "overall_confidence": analysis_result.get("overall_confidence"),
             "criteria_results": analysis_result.get("criteria_results"),
-            "summary": analysis_result.get("summary")
+            "summary": analysis_result.get("summary"),
+            "initial_scan": initial_scan
         }
         
         return jsonify(response), 200

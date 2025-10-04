@@ -5,6 +5,43 @@
       <span v-else class="text-red-600">✗ Counterfeit</span>
     </h2>
 
+    <!-- Initial Scan Results -->
+    <div v-if="result.initial_scan" class="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200">
+      <h3 class="text-xl font-semibold text-gray-900 mb-4">🔍 Initial Scan Analysis</h3>
+      <p class="text-sm text-gray-600 mb-4">Comparing your item with the reference product image</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl p-4 text-center shadow-sm">
+          <p class="text-3xl font-bold text-indigo-600">{{ (result.initial_scan.similarity_score * 100).toFixed(1) }}%</p>
+          <p class="text-xs text-gray-600">Similarity Score</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 text-center shadow-sm">
+          <p class="text-lg font-bold" :class="result.initial_scan.match_status === 'MATCH' ? 'text-green-600' : 'text-orange-600'">
+            {{ result.initial_scan.match_status }}
+          </p>
+          <p class="text-xs text-gray-600">Match Status</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 text-center shadow-sm">
+          <p class="text-lg font-bold text-purple-600">{{ result.initial_scan.confidence }}</p>
+          <p class="text-xs text-gray-600">Confidence</p>
+        </div>
+      </div>
+      
+      <div v-if="result.initial_scan.interpretation" class="mt-4 p-4 bg-white rounded-lg shadow-sm">
+        <p class="text-xs uppercase font-semibold text-gray-500 mb-1">Interpretation</p>
+        <p class="text-sm text-gray-700">{{ result.initial_scan.interpretation }}</p>
+      </div>
+      
+      <div v-if="result.initial_scan.counterfeit_risk" class="mt-2 p-3 rounded-lg" 
+           :class="getRiskBackground(result.initial_scan.counterfeit_risk)">
+        <p class="text-xs font-semibold text-gray-600">Risk Assessment: 
+          <span :class="getRiskColor(result.initial_scan.counterfeit_risk)" class="font-bold">
+            {{ result.initial_scan.counterfeit_risk }}
+          </span>
+        </p>
+      </div>
+    </div>
+
     <!-- Authentication Metrics Grid -->
     <div v-if="result.authentication_metrics" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-purple-50 rounded-xl p-4 text-center">
