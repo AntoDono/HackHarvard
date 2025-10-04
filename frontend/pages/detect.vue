@@ -136,9 +136,12 @@
     <!-- Processing Overlay (for criteria fetching) -->
     <div 
       v-if="isProcessing && !isCameraActive && !showDetectionModal" 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 overflow-hidden"
+      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999;"
     >
-      <LoadingAnimation :message="processingStep" />
+      <div class="w-full h-full flex items-center justify-center p-4">
+        <LoadingAnimation :message="processingStep" />
+      </div>
     </div>
 
     <!-- Detection Modal Popup -->
@@ -461,6 +464,9 @@ const analyzeImage = async () => {
   isProcessing.value = true
   processingStep.value = 'Detecting...'
   
+  // Prevent scrolling when processing
+  document.body.style.overflow = 'hidden'
+  
   try {
     // Step 1: Detect the item
     const detectResponse = await fetch(`${API_URL}/detect`, {
@@ -503,6 +509,8 @@ const analyzeImage = async () => {
     
     isProcessing.value = false
     
+    document.body.style.overflow = 'auto'
+    
     // Handle different item types
     if (detectResult.item_type === 'person' && detectResult.awaiting_person_input) {
       // Person detected - show input form
@@ -521,6 +529,8 @@ const analyzeImage = async () => {
     console.error('Error analyzing image:', error)
     alert(`❌ Error analyzing image. Make sure the backend is running at ${API_URL}`)
     isProcessing.value = false
+    
+    document.body.style.overflow = 'auto'
   }
 }
 
@@ -532,6 +542,8 @@ const confirmAndProceed = async () => {
   showDetectionModal.value = false
   isProcessing.value = true
   processingStep.value = 'Getting authentication criteria...'
+  
+  document.body.style.overflow = 'hidden'
   
   try {
     // Fetch criteria for the detected item
@@ -566,6 +578,8 @@ const confirmAndProceed = async () => {
     isProcessing.value = false
     showResults.value = true
     
+    document.body.style.overflow = 'auto'
+    
     // Auto-scroll to criteria section
     await nextTick()
     if (criteriaSection.value) {
@@ -576,6 +590,8 @@ const confirmAndProceed = async () => {
     console.error('Error getting criteria:', error)
     alert(`❌ Error getting criteria. Make sure the backend is running at ${API_URL}`)
     isProcessing.value = false
+    
+    document.body.style.overflow = 'auto'
   }
 }
 
@@ -592,6 +608,8 @@ const tryAgain = () => {
 const handlePersonResearch = async (data) => {
   isProcessing.value = true
   processingStep.value = 'Researching person...'
+  
+  document.body.style.overflow = 'hidden'
   
   try {
     const response = await fetch(`${API_URL}/research_person`, {
@@ -621,10 +639,15 @@ const handlePersonResearch = async (data) => {
     showPersonInput.value = false
     isProcessing.value = false
     
+    document.body.style.overflow = 'auto'
+    
   } catch (error) {
     console.error('Error researching person:', error)
     alert(`❌ Error researching person. Make sure the backend is running at ${API_URL}`)
     isProcessing.value = false
+    
+    // Re-enable scrolling on error
+    document.body.style.overflow = 'auto'
   }
 }
 
@@ -693,6 +716,9 @@ const submitForAnalysis = async () => {
   isProcessing.value = true
   processingStep.value = 'Analyzing authenticity...'
   
+  // Prevent scrolling when processing
+  document.body.style.overflow = 'hidden'
+  
   try {
     const response = await fetch(`${API_URL}/analyze/${detectionResult.value.detection_id}`, {
       method: 'POST',
@@ -719,11 +745,17 @@ const submitForAnalysis = async () => {
     analysisResult.value = result
     isCapturingCriteria.value = false
     
+    // Re-enable scrolling
+    document.body.style.overflow = 'auto'
+    
   } catch (error) {
     console.error('Error analyzing images:', error)
     alert(`❌ Error analyzing images. Make sure the backend is running at ${API_URL}`)
   } finally {
     isProcessing.value = false
+    
+    // Re-enable scrolling
+    document.body.style.overflow = 'auto'
   }
 }
 
@@ -734,6 +766,9 @@ onMounted(async () => {
 
 onUnmounted(() => {
   stopCamera()
+  
+  // Ensure scrolling is re-enabled when component unmounts
+  document.body.style.overflow = 'auto'
 })
 </script>
 
@@ -760,6 +795,28 @@ onUnmounted(() => {
 
 .animate-modal-in {
   animation: modal-in 0.3s ease-out forwards;
+}
+
+/* Mobile-specific loading overlay fixes */
+@media (max-width: 768px) {
+  .fixed.inset-0 {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+  }
+}
+
+/* Prevent body scroll when loading */
+body.loading-overlay-active {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 </style>
 

@@ -1,14 +1,14 @@
 <template>
-  <div class="text-center text-white">
+  <div class="text-center text-white w-full max-w-md mx-auto px-4">
     <div 
-      class="text-6xl md:text-8xl font-bold mb-6 transition-all duration-300"
+      class="text-5xl sm:text-6xl md:text-8xl font-bold mb-6 transition-all duration-300"
       :class="{ 'animate-shake': isShaking }"
       :style="{ color: getRealColor(currentReal) }"
     >
       {{ currentReal }}real?
     </div>
-    <p class="text-xl md:text-2xl font-semibold">{{ message }}</p>
-    <p class="text-sm text-gray-300 mt-2">This may take a few moments...</p>
+    <p class="text-lg sm:text-xl md:text-2xl font-semibold mb-2">{{ message }}</p>
+    <p class="text-xs sm:text-sm text-gray-300">This may take a few moments...</p>
   </div>
 </template>
 
