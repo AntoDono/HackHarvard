@@ -8,6 +8,7 @@ from pathlib import Path
 from item_detection import analyze_product_from_image
 from criteria import criteria as get_criteria
 from counterfeit import counterfeit
+from generate_real_images import ReverseImageSearcher
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
@@ -94,20 +95,47 @@ def detect():
         # Generate unique detection_id
         detection_id = str(uuid.uuid4())
         
+        # Use reverse image search to find product URL and images
+        product_url = None
+        product_image = None
+        try:
+            print(f"🔍 Searching for product info using reverse image search...")
+            searcher = ReverseImageSearcher()
+            search_results = searcher.search_by_local_image(str(filepath), max_results=10)
+            
+            if search_results:
+                # Get top result with highest trust score
+                top_result = max(search_results, key=lambda x: x.get('trust_score', 0))
+                product_url = top_result.get('link', '')
+                product_image = top_result.get('thumbnail', '')
+                
+                print(f"✅ Found product URL: {product_url}")
+                print(f"✅ Found product image: {product_image}")
+            else:
+                print("⚠️  No search results found")
+        except Exception as e:
+            print(f"⚠️  Error in reverse image search: {e}")
+            # Continue without product URL/image if search fails
+        
         # Store basic detection data (without criteria yet)
         DETECT_TASKS[detection_id] = {
             "item": item_name,
             "item_detection_image": str(filepath),
             "product_details": product,
+            "product_url": product_url,
+            "product_image": product_image,
             "criteria": None,
             "location_angle": None
         }
         
-        # Return just detection info
+        # Return detection info with product URL and image
         response = {
             "success": True,
             "detection_id": detection_id,
             "item": item_name,
+            "product_name": item_name,
+            "product_url": product_url,
+            "product_image": product_image,
             "product_details": product,
             "filename": filename
         }

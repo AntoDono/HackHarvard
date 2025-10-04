@@ -94,15 +94,16 @@ def analyze_product_from_image(image_path: str) -> Dict:
         if not products:
             return {"repositioning instructions": "No products detected. Please ensure the product is clearly visible in the image."}
         
-        # Check for high confidence products
-        high_confidence_products = [p for p in products if p.get("confidence") == "High"]
+        # Check for high or medium confidence products
+        confident_products = [p for p in products if p.get("confidence") in ["High", "Medium"]]
         
-        if high_confidence_products:
-            # Return the first high confidence product
-            product = high_confidence_products[0]
+        if confident_products:
+            # Return the first confident product (prioritize High over Medium)
+            high_conf = [p for p in confident_products if p.get("confidence") == "High"]
+            product = high_conf[0] if high_conf else confident_products[0]
             return {"product": product}
         else:
-            # If only medium/low confidence, return repositioning instructions
+            # If only low confidence, return repositioning instructions
             return {"repositioning instructions": "Product detected but with low confidence. Please provide a clearer image with better lighting and focus."}
         
     except json.JSONDecodeError:
