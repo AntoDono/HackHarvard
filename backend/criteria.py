@@ -91,6 +91,11 @@ def search_online_criteria(item: str):
         messages=[
             {"role": "user", "content": prompt}
         ],
+        compound_custom={
+            "tools": {
+                "enabled_tools": ["web_search", "browser_automation"]
+            }
+        },
         temperature=0.2
     )
     
