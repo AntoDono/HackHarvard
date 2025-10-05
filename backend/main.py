@@ -21,6 +21,12 @@ from ai_detection.inference import is_deepfake
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
 
+# ============================================
+# CONFIGURATION - Adjust these as needed
+# ============================================
+DEEPFAKE_CONFIDENCE_THRESHOLD = 0.6  # Minimum confidence (0.0-1.0) to flag as AI-generated
+# ============================================
+
 # Create uploads directory if it doesn't exist
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -109,8 +115,8 @@ def detect():
                     # Download image temporarily for local processing
                     temp_image_path = UPLOAD_DIR / f"temp_{filename}"
                     if download_image(image_url, temp_image_path):
-                        # Use our model for detection
-                        result = is_deepfake(str(temp_image_path))
+                        # Use our model for detection with configured threshold
+                        result = is_deepfake(str(temp_image_path), confidence_threshold=DEEPFAKE_CONFIDENCE_THRESHOLD)
                         
                         # Extract results
                         is_deepfake_result = result['is_deepfake']
@@ -142,8 +148,8 @@ def detect():
                 probability = None
                 per_model = {}
             
-            # If detected as deepfake (probability > 0.5), return early with deepfake info
-            if is_deepfake_result and probability is not None:
+            # If detected as deepfake (probability >= threshold), return early with deepfake info
+            if is_deepfake_result and probability is not None and probability >= DEEPFAKE_CONFIDENCE_THRESHOLD:
                 print(f"⚠️  DEEPFAKE DETECTED with {probability:.2%} confidence")
                 
                 response = {

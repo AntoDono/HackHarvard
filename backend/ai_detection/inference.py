@@ -113,8 +113,12 @@ class DeepfakeInference:
             predicted_class = outputs.argmax(dim=1).item()
             confidence = probabilities[0][predicted_class].item()
             
-            # Determine if it's a deepfake
-            is_deepfake = predicted_class == 1  # Assuming 1 = Fake, 0 = Real
+            # Get the probability for the "Fake" class (class 1)
+            fake_probability = probabilities[0][1].item() if len(probabilities[0]) > 1 else 0.0
+            
+            # Determine if it's a deepfake based on BOTH class prediction AND confidence threshold
+            # Only flag as deepfake if predicted as fake (class 1) AND confidence exceeds threshold
+            is_deepfake = (predicted_class == 1) and (fake_probability >= confidence_threshold)
             prediction_label = self.index_mapping.get(predicted_class, "Unknown")
             
             # Get all probabilities
@@ -128,7 +132,7 @@ class DeepfakeInference:
             'confidence': confidence,
             'prediction': prediction_label,
             'probabilities': prob_dict,
-            'raw_confidence': confidence if is_deepfake else 1.0 - confidence
+            'raw_confidence': fake_probability  # Always use fake class probability
         }
     
     def predict_batch(self, image_paths, confidence_threshold=0.6):
