@@ -78,6 +78,17 @@
           <p class="text-xl text-gray-600">Watch how 4real? protects you from counterfeits in real-time</p>
         </div>
 
+        <!-- Physical Items Detection Section -->
+        <div class="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-32 py-16 bg-gradient-to-br from-purple-100 to-purple-50">
+          <div class="max-w-7xl mx-auto px-8">
+            <div class="text-center mb-16">
+              <div class="inline-block px-6 py-3 bg-purple-100 text-purple-600 rounded-full text-lg font-bold mb-4">
+                🛍️ PHYSICAL ITEMS
+              </div>
+              <h3 class="text-4xl font-bold text-gray-900 mb-4">Authenticate Real Products</h3>
+              <p class="text-xl text-gray-600">From luxury handbags to collectibles—verify the authenticity of physical items</p>
+            </div>
+
         <!-- Feature 1: Snap & Detect (Left Image, Right Text) -->
         <div class="flex flex-col md:flex-row items-center gap-12 mb-24">
           <div class="md:w-1/2 fade-in-left">
@@ -189,7 +200,7 @@
         </div>
 
         <!-- Feature 4: Counterfeit Detection (Right Image, Left Text) -->
-        <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+        <div class="flex flex-col md:flex-row-reverse items-center gap-12 mb-24">
           <div class="md:w-1/2 fade-in-right">
             <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
               <img 
@@ -221,6 +232,235 @@
                 <p class="text-gray-600"><strong>Protection:</strong> Saves you from purchasing fake items</p>
               </div>
             </div>
+          </div>
+        </div>
+          </div>
+        </div>
+
+        <!-- Digital Content Detection Section -->
+        <div class="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-32 py-16">
+          <div class="max-w-7xl mx-auto px-8">
+            <div class="text-center mb-16">
+              <div class="inline-block px-6 py-3 bg-blue-100 text-blue-600 rounded-full text-lg font-bold mb-4">
+                🤖 DIGITAL CONTENT
+              </div>
+              <h3 class="text-4xl font-bold text-gray-900 mb-4">Detect AI & Misinformation</h3>
+              <p class="text-xl text-gray-600">From deepfakes to false news—identify synthetic and misleading content</p>
+            </div>
+
+        <!-- Feature 5: AI Deepfake Detection (Left Image, Right Text) -->
+        <div class="flex flex-col md:flex-row items-center gap-12">
+          <div class="md:w-1/2 fade-in-left">
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Real Person -->
+              <div class="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+                <img 
+                  src="/assets/images/real_person.png" 
+                  alt="Real Person" 
+                  class="w-full h-auto"
+                />
+                <div class="p-4 bg-green-50">
+                  <div class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">
+                    ✅ REAL
+                  </div>
+                </div>
+              </div>
+              <!-- AI Generated -->
+              <div class="bg-white rounded-2xl shadow-xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+                <img 
+                  src="/assets/images/ai_person.png" 
+                  alt="AI Generated Person" 
+                  class="w-full h-auto"
+                />
+                <div class="p-4 bg-red-50">
+                  <div class="inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-bold">
+                    ⚠️ AI GENERATED
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="md:w-1/2 fade-in-right">
+            <div class="inline-block px-4 py-2 bg-purple-100 text-purple-600 rounded-full text-sm font-bold mb-4">
+              🤖 AI DEEPFAKE DETECTION
+            </div>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Spot AI-Generated Faces</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              Our advanced AI can instantly distinguish between real people and AI-generated faces, analyzing facial features, skin texture, and digital artifacts.
+            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🧠</span>
+                <p class="text-gray-600"><strong>Neural Analysis:</strong> Deep learning models trained on millions of real and synthetic images</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🔍</span>
+                <p class="text-gray-600"><strong>Artifact Detection:</strong> Identifies subtle digital patterns and generation signatures</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">📊</span>
+                <p class="text-gray-600"><strong>Confidence Scoring:</strong> Provides probability scores with detailed explanations</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 6: False News Detection (Right Image, Left Text) -->
+        <div class="flex flex-col md:flex-row-reverse items-center gap-12 mb-24">
+          <div class="md:w-1/2 fade-in-right">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+              <img 
+                src="/assets/images/false_news.png" 
+                alt="False News Detection" 
+                class="w-full h-auto"
+              />
+            </div>
+          </div>
+          <div class="md:w-1/2 fade-in-left">
+            <div class="inline-block px-4 py-2 bg-orange-100 text-orange-600 rounded-full text-sm font-bold mb-4">
+              📰 FACT CHECK
+            </div>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Detect False News</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              Our AI analyzes news content, claims, and statements to determine their veracity. Get instant fact-checking with confidence scores and detailed explanations.
+            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🔍</span>
+                <p class="text-gray-600"><strong>Claim Analysis:</strong> Breaks down complex statements into verifiable facts</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">📊</span>
+                <p class="text-gray-600"><strong>Confidence Scoring:</strong> Provides percentage-based accuracy ratings</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">⚖️</span>
+                <p class="text-gray-600"><strong>Verdict System:</strong> Clear TRUE/FALSE/MOSTLY FALSE classifications</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 7: Source Verification (Left Image, Right Text) -->
+        <div class="flex flex-col md:flex-row items-center gap-12 mb-24">
+          <div class="md:w-1/2 fade-in-left">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+              <img 
+                src="/assets/images/false_news_source_check.png" 
+                alt="Source Verification" 
+                class="w-full h-auto"
+              />
+            </div>
+          </div>
+          <div class="md:w-1/2 fade-in-right">
+            <div class="inline-block px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-bold mb-4">
+              🔗 SOURCE VERIFICATION
+            </div>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Verify Your Sources</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              Get detailed source analysis with credibility ratings, evidence breakdown, and comprehensive fact-checking reports from trusted organizations.
+            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">📚</span>
+                <p class="text-gray-600"><strong>Source Analysis:</strong> Evaluates credibility of news sources and publications</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🛡️</span>
+                <p class="text-gray-600"><strong>Evidence Review:</strong> Cross-references claims with multiple reliable sources</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">⭐</span>
+                <p class="text-gray-600"><strong>Credibility Scoring:</strong> Rates source reliability from high to low confidence</p>
+              </div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+
+        <!-- News & Fact-Checking Section -->
+        <div class="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-32 py-16 bg-gradient-to-br from-purple-100 to-purple-50">
+          <div class="max-w-7xl mx-auto px-8">
+            <div class="text-center mb-16">
+              <div class="inline-block px-6 py-3 bg-orange-100 text-orange-600 rounded-full text-lg font-bold mb-4">
+                📰 NEWS & FACT-CHECKING
+              </div>
+              <h3 class="text-4xl font-bold text-gray-900 mb-4">Verify Information</h3>
+              <p class="text-xl text-gray-600">Fact-check claims, verify sources, and detect misinformation in real-time</p>
+            </div>
+
+        <!-- Feature 6: False News Detection (Right Image, Left Text) -->
+        <div class="flex flex-col md:flex-row-reverse items-center gap-12 mb-24">
+          <div class="md:w-1/2 fade-in-right">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+              <img 
+                src="/assets/images/false_news.png" 
+                alt="False News Detection" 
+                class="w-full h-auto"
+              />
+            </div>
+          </div>
+          <div class="md:w-1/2 fade-in-left">
+            <div class="inline-block px-4 py-2 bg-orange-100 text-orange-600 rounded-full text-sm font-bold mb-4">
+              📰 FACT CHECK
+            </div>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Detect False News</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              Our AI analyzes news content, claims, and statements to determine their veracity. Get instant fact-checking with confidence scores and detailed explanations.
+            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🔍</span>
+                <p class="text-gray-600"><strong>Claim Analysis:</strong> Breaks down complex statements into verifiable facts</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">📊</span>
+                <p class="text-gray-600"><strong>Confidence Scoring:</strong> Provides percentage-based accuracy ratings</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">⚖️</span>
+                <p class="text-gray-600"><strong>Verdict System:</strong> Clear TRUE/FALSE/MOSTLY FALSE classifications</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 7: Source Verification (Left Image, Right Text) -->
+        <div class="flex flex-col md:flex-row items-center gap-12 mb-24">
+          <div class="md:w-1/2 fade-in-left">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+              <img 
+                src="/assets/images/false_news_source_check.png" 
+                alt="Source Verification" 
+                class="w-full h-auto"
+              />
+            </div>
+          </div>
+          <div class="md:w-1/2 fade-in-right">
+            <div class="inline-block px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-bold mb-4">
+              🔗 SOURCE VERIFICATION
+            </div>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Verify Your Sources</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              Get detailed source analysis with credibility ratings, evidence breakdown, and comprehensive fact-checking reports from trusted organizations.
+            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">📚</span>
+                <p class="text-gray-600"><strong>Source Analysis:</strong> Evaluates credibility of news sources and publications</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🛡️</span>
+                <p class="text-gray-600"><strong>Evidence Review:</strong> Cross-references claims with multiple reliable sources</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">⭐</span>
+                <p class="text-gray-600"><strong>Credibility Scoring:</strong> Rates source reliability from high to low confidence</p>
+              </div>
+            </div>
+          </div>
+        </div>
           </div>
         </div>
       </div>

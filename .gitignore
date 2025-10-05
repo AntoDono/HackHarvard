@@ -11,3 +11,4 @@ backend/uploads/*
 
 # AI Detection Models (large files, download separately)
 backend/ai_detection/temp/
+Dataset

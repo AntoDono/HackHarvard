@@ -54,7 +54,7 @@
         </div>
         <div class="bg-white rounded-xl p-4 text-center shadow-sm">
           <p class="text-lg font-bold" :class="averageScore > 3 ? 'text-green-600' : 'text-orange-600'">
-            {{ averageScore > 3.5 ? 'Confident' : 'Not Confident' }}
+            {{ averageScore > 3.25 ? 'Confident' : 'Not Confident' }}
           </p>
           <p class="text-xs text-gray-600">Confidence</p>
         </div>

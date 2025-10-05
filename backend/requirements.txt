@@ -34,3 +34,6 @@ dlib
 matplotlib
 efficientnet_pytorch
 albumentations
+kaggle
+pandas
+tqdm
