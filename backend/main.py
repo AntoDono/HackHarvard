@@ -16,6 +16,7 @@ from person import research_person_fakeness
 from fact_check import fact_check
 from image_similarity_scores import ComparisonAnalyzer
 from ai_detection.model import DeepfakeModel
+from ai_detection.inference import DeepfakeInference
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
@@ -28,11 +29,11 @@ SIMILARITY_ANALYZER = ComparisonAnalyzer()
 
 # Initialize deepfake detection model
 try:
-    DEEPFAKE_MODEL = DeepfakeModel().load_model("deepfake_model.pth")
-    print("✅ Deepfake model loaded successfully")
+    DEEPFAKE_INFERENCE = DeepfakeInference("deepfake_model.pth")
+    print("✅ Deepfake inference model loaded successfully")
 except Exception as e:
     print(f"⚠️  Could not load deepfake model: {e}")
-    DEEPFAKE_MODEL = None
+    DEEPFAKE_INFERENCE = None
 
 DETECT_TASKS = {}
 
@@ -110,26 +111,25 @@ def detect():
                 print(f"📤 Uploaded image for detection: {image_url}")
                 
                 # Use our trained deepfake detection model
-                if DEEPFAKE_MODEL is not None:
+                if DEEPFAKE_INFERENCE is not None:
                     try:
                         # Download image temporarily for local processing
                         temp_image_path = UPLOAD_DIR / f"temp_{filename}"
                         if download_image(image_url, temp_image_path):
                             # Use our model for detection
-                            result = DEEPFAKE_MODEL.predict(str(temp_image_path))
+                            result = DEEPFAKE_INFERENCE.is_deepfake(str(temp_image_path))
                             
-                            # Convert prediction to probability
-                            if result['prediction'] == 'fake':
-                                probability = result['confidence']
-                            else:
-                                probability = 1.0 - result['confidence']
+                            # Extract results
+                            is_deepfake = result['is_deepfake']
+                            probability = result['raw_confidence']
+                            prediction = result['prediction']
+                            confidence = result['confidence']
                             
-                            is_deepfake = probability > 0.5
                             per_model = {'custom_model': probability}
                             
                             print(f"🤖 Deepfake detection result: {probability:.2%}")
                             print(f"🤖 Detection details: {per_model}")
-                            print(f"🤖 Model prediction: {result['prediction']} (confidence: {result['confidence']:.2%})")
+                            print(f"🤖 Model prediction: {prediction} (confidence: {confidence:.2%})")
                             
                             # Clean up temp file
                             temp_image_path.unlink(missing_ok=True)
