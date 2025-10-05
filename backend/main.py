@@ -15,7 +15,7 @@ from upload_image import upload_image_to_supabase
 from person import research_person_fakeness
 from fact_check import fact_check
 from image_similarity_scores import ComparisonAnalyzer
-from ai_detection import detect_deepfake
+from ai_detection.model import DeepfakeModel
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
@@ -25,6 +25,14 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 SEARCHER = ReverseImageSearcher()
 SIMILARITY_ANALYZER = ComparisonAnalyzer()
+
+# Initialize deepfake detection model
+try:
+    DEEPFAKE_MODEL = DeepfakeModel().load_model("deepfake_model.pth")
+    print("✅ Deepfake model loaded successfully")
+except Exception as e:
+    print(f"⚠️  Could not load deepfake model: {e}")
+    DEEPFAKE_MODEL = None
 
 DETECT_TASKS = {}
 
@@ -101,21 +109,58 @@ def detect():
             if image_url:
                 print(f"📤 Uploaded image for detection: {image_url}")
                 
-                # Call SightEngine API for deepfake detection
-                probability = detect_deepfake(image_url)
-                
-                if probability is not None:
-                    is_deepfake = probability > 0.5
-                    per_model = {'sightengine_genai': probability}
-                    
-                    print(f"🤖 Deepfake detection result: {probability:.2%}")
-                    print(f"🤖 Detection details: {per_model}")
+                # Use our trained deepfake detection model
+                if DEEPFAKE_MODEL is not None:
+                    try:
+                        # Download image temporarily for local processing
+                        temp_image_path = UPLOAD_DIR / f"temp_{filename}"
+                        if download_image(image_url, temp_image_path):
+                            # Use our model for detection
+                            result = DEEPFAKE_MODEL.predict(str(temp_image_path))
+                            
+                            # Convert prediction to probability
+                            if result['prediction'] == 'fake':
+                                probability = result['confidence']
+                            else:
+                                probability = 1.0 - result['confidence']
+                            
+                            is_deepfake = probability > 0.5
+                            per_model = {'custom_model': probability}
+                            
+                            print(f"🤖 Deepfake detection result: {probability:.2%}")
+                            print(f"🤖 Detection details: {per_model}")
+                            print(f"🤖 Model prediction: {result['prediction']} (confidence: {result['confidence']:.2%})")
+                            
+                            # Clean up temp file
+                            temp_image_path.unlink(missing_ok=True)
+                        else:
+                            raise Exception("Failed to download image for processing")
+                    except Exception as e:
+                        print(f"⚠️  Custom model detection failed: {e}")
+                        # Fallback to SightEngine API
+                        probability = detect_deepfake(image_url)
+                        if probability is not None:
+                            is_deepfake = probability > 0.5
+                            per_model = {'sightengine_genai': probability}
+                            print(f"🤖 Fallback API result: {probability:.2%}")
+                        else:
+                            print("⚠️  All deepfake detection methods failed")
+                            is_deepfake = None
+                            probability = None
+                            per_model = {}
                 else:
-                    # Fallback if API fails
-                    print("⚠️  Deepfake detection failed")
-                    is_deepfake = None
-                    probability = None
-                    per_model = {}
+                    # Fallback to SightEngine API if model not available
+                    print("⚠️  Custom model not available, using API fallback")
+                    probability = detect_deepfake(image_url)
+                    if probability is not None:
+                        is_deepfake = probability > 0.5
+                        per_model = {'sightengine_genai': probability}
+                        print(f"🤖 API detection result: {probability:.2%}")
+                    else:
+                        print("⚠️  Deepfake detection failed")
+                        is_deepfake = None
+                        probability = None
+                        per_model = {}
             else:
                 print("⚠️  Failed to upload image for detection")
                 is_deepfake = None
