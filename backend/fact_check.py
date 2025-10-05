@@ -65,7 +65,7 @@ def fact_check(image_path: str):
     generate_content_config = types.GenerateContentConfig(
         tools=tools,
         thinking_config=types.ThinkingConfig(
-            thinking_budget=0,
+            thinking_budget=2048,
         )
     )
     

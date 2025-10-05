@@ -38,7 +38,7 @@ def call_gemini_model(client, prompt: str) -> str:
     generate_content_config = types.GenerateContentConfig(
         tools=tools,
         thinking_config=types.ThinkingConfig(
-            thinking_budget=0,  # No extra thinking time needed
+            thinking_budget=2048,  # No extra thinking time needed
         )
     )
     
