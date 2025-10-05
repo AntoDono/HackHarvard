@@ -82,17 +82,17 @@ class CustomResNet30(nn.Module):
         
         # ResNet layers - designed to have exactly 30 layers total
         # Layer 1: 2 blocks (3 layers each) = 6 layers
-        self.layer1 = self._make_layer(block, 32, num_blocks[0], stride=1)
+        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
         # Layer 2: 2 blocks (3 layers each) = 6 layers  
-        self.layer2 = self._make_layer(block, 64, num_blocks[1], stride=2)
+        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
         # Layer 3: 2 blocks (3 layers each) = 6 layers
-        self.layer3 = self._make_layer(block, 128, num_blocks[2], stride=2)
+        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         # Layer 4: 2 blocks (3 layers each) = 6 layers
-        self.layer4 = self._make_layer(block, 256, num_blocks[3], stride=2)
+        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         
         # Final layers
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(256 * block.expansion, num_classes)
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
         
         # Initialize weights
         self._initialize_weights()
