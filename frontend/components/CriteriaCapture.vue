@@ -46,7 +46,7 @@
           playsinline
           muted
           class="w-full h-full object-contain"
-          style="transform: scaleX(-1);"
+          :style="{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }"
         ></video>
 
         <!-- Camera Status Indicator -->
@@ -198,6 +198,10 @@ defineProps({
   isCameraActive: Boolean,
   isProcessing: Boolean,
   processingStep: String,
+  facingMode: {
+    type: String,
+    default: 'environment'
+  },
   zoomLevel: {
     type: Number,
     default: 1
