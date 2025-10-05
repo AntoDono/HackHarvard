@@ -16,7 +16,7 @@ from person import research_person_fakeness
 from fact_check import fact_check
 from image_similarity_scores import ComparisonAnalyzer
 from ai_detection.model import DeepfakeModel
-from ai_detection.inference import DeepfakeInference
+from ai_detection.inference import is_deepfake
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
@@ -27,13 +27,7 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 SEARCHER = ReverseImageSearcher()
 SIMILARITY_ANALYZER = ComparisonAnalyzer()
 
-# Initialize deepfake detection model
-try:
-    DEEPFAKE_INFERENCE = DeepfakeInference("deepfake_model.pth")
-    print("✅ Deepfake inference model loaded successfully")
-except Exception as e:
-    print(f"⚠️  Could not load deepfake model: {e}")
-    DEEPFAKE_INFERENCE = None
+# Deepfake detection will be handled by the is_deepfake function
 
 DETECT_TASKS = {}
 
@@ -111,71 +105,52 @@ def detect():
                 print(f"📤 Uploaded image for detection: {image_url}")
                 
                 # Use our trained deepfake detection model
-                if DEEPFAKE_INFERENCE is not None:
-                    try:
-                        # Download image temporarily for local processing
-                        temp_image_path = UPLOAD_DIR / f"temp_{filename}"
-                        if download_image(image_url, temp_image_path):
-                            # Use our model for detection
-                            result = DEEPFAKE_INFERENCE.is_deepfake(str(temp_image_path))
-                            
-                            # Extract results
-                            is_deepfake = result['is_deepfake']
-                            probability = result['raw_confidence']
-                            prediction = result['prediction']
-                            confidence = result['confidence']
-                            
-                            per_model = {'custom_model': probability}
-                            
-                            print(f"🤖 Deepfake detection result: {probability:.2%}")
-                            print(f"🤖 Detection details: {per_model}")
-                            print(f"🤖 Model prediction: {prediction} (confidence: {confidence:.2%})")
-                            
-                            # Clean up temp file
-                            temp_image_path.unlink(missing_ok=True)
-                        else:
-                            raise Exception("Failed to download image for processing")
-                    except Exception as e:
-                        print(f"⚠️  Custom model detection failed: {e}")
-                        # Fallback to SightEngine API
-                        probability = detect_deepfake(image_url)
-                        if probability is not None:
-                            is_deepfake = probability > 0.5
-                            per_model = {'sightengine_genai': probability}
-                            print(f"🤖 Fallback API result: {probability:.2%}")
-                        else:
-                            print("⚠️  All deepfake detection methods failed")
-                            is_deepfake = None
-                            probability = None
-                            per_model = {}
-                else:
-                    # Fallback to SightEngine API if model not available
-                    print("⚠️  Custom model not available, using API fallback")
-                    probability = detect_deepfake(image_url)
-                    if probability is not None:
-                        is_deepfake = probability > 0.5
-                        per_model = {'sightengine_genai': probability}
-                        print(f"🤖 API detection result: {probability:.2%}")
+                try:
+                    # Download image temporarily for local processing
+                    temp_image_path = UPLOAD_DIR / f"temp_{filename}"
+                    if download_image(image_url, temp_image_path):
+                        # Use our model for detection
+                        result = is_deepfake(str(temp_image_path))
+                        
+                        # Extract results
+                        is_deepfake_result = result['is_deepfake']
+                        probability = result['raw_confidence']
+                        prediction = result['prediction']
+                        confidence = result['confidence']
+                        
+                        per_model = {'custom_model': probability}
+                        
+                        print(f"🤖 Deepfake detection result: {probability:.2%}")
+                        print(f"🤖 Detection details: {per_model}")
+                        print(f"🤖 Model prediction: {prediction} (confidence: {confidence:.2%})")
+                        
+                        # Clean up temp file
+                        temp_image_path.unlink(missing_ok=True)
                     else:
-                        print("⚠️  Deepfake detection failed")
-                        is_deepfake = None
-                        probability = None
-                        per_model = {}
+                        raise Exception("Failed to download image for processing")
+                except Exception as e:
+                    print(f"⚠️  Custom model detection failed: {e}")
+                    # Fallback to SightEngine API (placeholder - implement if needed)
+                    print("⚠️  Fallback API not implemented")
+                    is_deepfake_result = None
+                    probability = None
+                    per_model = {}
+            
             else:
                 print("⚠️  Failed to upload image for detection")
-                is_deepfake = None
+                is_deepfake_result = None
                 probability = None
                 per_model = {}
             
             # If detected as deepfake (probability > 0.5), return early with deepfake info
-            if is_deepfake and probability is not None:
+            if is_deepfake_result and probability is not None:
                 print(f"⚠️  DEEPFAKE DETECTED with {probability:.2%} confidence")
                 
                 response = {
                     "success": True,
                     "is_deepfake": True,
                     "deepfake_detection": {
-                        "is_deepfake": is_deepfake,
+                        "is_deepfake": is_deepfake_result,
                         "probability": probability,
                         "confidence_level": "high" if probability > 0.75 else "medium" if probability > 0.5 else "low",
                         "per_model_results": [

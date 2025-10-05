@@ -1,16 +1,17 @@
+from pickle import NONE
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
 from PIL import Image
 import numpy as np
 import os
-from model import DeepfakeModel
+from .model import DeepfakeModel
 
 
 class DeepfakeInference:
     """Simple inference class for deepfake detection"""
     
-    def __init__(self, model_path="deepfake_model.pth"):
+    def __init__(self, model_path="ai_detection/deepfake_model.pth"):
         """
         Initialize the inference model
         
@@ -43,7 +44,7 @@ class DeepfakeInference:
         self.index_mapping = checkpoint.get('index_mapping', {})
         
         # Initialize model
-        from model import DeepfakeModel
+        from .model import DeepfakeModel
         temp_model = DeepfakeModel(self.config)
         temp_model.initialize_model()
         
@@ -159,9 +160,9 @@ class DeepfakeInference:
         
         return results
 
-
+INFERENCE = None
 # Convenience function for simple usage
-def is_deepfake(image_path, model_path="deepfake_model.pth", confidence_threshold=0.5):
+def is_deepfake(image_path, model_path="ai_detection/deepfake_model.pth", confidence_threshold=0.5):
     """
     Simple function to check if an image is a deepfake
     
@@ -174,10 +175,11 @@ def is_deepfake(image_path, model_path="deepfake_model.pth", confidence_threshol
         dict: Prediction results
     """
     # Create inference instance
-    inference = DeepfakeInference(model_path)
-    
     # Run prediction
-    return inference.is_deepfake(image_path, confidence_threshold)
+    global INFERENCE
+    if INFERENCE is None:
+        INFERENCE = DeepfakeInference(model_path)
+    return INFERENCE.is_deepfake(image_path, confidence_threshold)
 
 
 if __name__ == "__main__":
