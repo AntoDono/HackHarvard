@@ -10,6 +10,17 @@
   <em>Real-time AI • Real information • Real confidence</em>
 </p>
 
+---
+<div align="center">
+
+Built with genuinity by the **4real?** team at **HackHarvard 2025**
+
+**[Youwei Zhen](https://github.com/antodono)** • **[Brandon Sun](https://github.com/brandonzion)** • **[Yuxin Zeng](https://github.com/yzeng1121)** • **[Krishna Mansinghka](https://github.com/KrishnaMansinghka)**
+
+</div>
+
+---
+
 <br/>
 
 ### 🛠️ Tech Stack
@@ -47,12 +58,17 @@
 
 <br/>
 
+### 🌐 Live Demo
+
+**[🔗 Try it now: 4reall.netlify.app](https://4reall.netlify.app)**
+
+<br/>
+
 ![HackHarvard 2025](https://img.shields.io/badge/HackHarvard-2025-8B5CF6?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://4reall.netlify.app)
 
 </div>
-
----
 
 ## 📋 Table of Contents
 
@@ -956,83 +972,9 @@ python inference.py path/to/image.jpg deepfake_model.pth
 
 ---
 
-## 🛣️ Roadmap
-
-### Phase 1 (Current)
-- [x] Product authentication
-- [x] Deepfake detection
-- [x] Fact checking
-- [x] Person research
-- [x] Web interface
-
-### Phase 2 (Planned)
-- [ ] Mobile app (React Native)
-- [ ] Browser extension
-- [ ] QR code verification
-- [ ] Blockchain certificate storage
-- [ ] Batch processing API
-
-### Phase 3 (Future)
-- [ ] Community reports database
-- [ ] Machine learning feedback loop
-- [ ] Real-time video analysis
-- [ ] Marketplace integrations (eBay, Poshmark)
-- [ ] Professional authentication service
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! This project was built for HackHarvard 2025.
-
-### Adding New Brands
-Edit `backend/generate_real_images/config.py`:
-```python
-KNOWN_BRANDS = {
-    'new brand': 'newbrand.com'
-}
-
-TRUST_SCORES = {
-    'newbrand.com': 1.0
-}
-```
-
-### Adding New Detection Types
-1. Create new module in `backend/`
-2. Add endpoint in `main.py`
-3. Create Vue component in `frontend/components/`
-4. Update detection flow in `detect.vue`
-
----
-
 ## 📄 License
 
 This project was created for HackHarvard 2025. All rights reserved.
-
----
-
-## 👥 Team
-
-Built with ❤️ by the **4real?** team at HackHarvard 2025.
-
----
-
-## 🙏 Acknowledgments
-
-- Google for Gemini API access
-- SerpAPI for reverse image search
-- PyTorch community for model architectures
-- Vue.js & Nuxt teams for amazing frameworks
-- OpenCV contributors
-
----
-
-## 📞 Support
-
-For questions or issues:
-1. Check the documentation above
-2. Review test files for examples
-3. Check API response formats
 
 ---
 

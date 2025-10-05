@@ -46,6 +46,7 @@
           playsinline
           muted
           class="w-full h-full object-contain"
+          style="transform: scaleX(-1);"
         ></video>
 
         <!-- Camera Status Indicator -->
