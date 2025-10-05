@@ -244,12 +244,12 @@
               <div class="inline-block px-6 py-3 bg-blue-100 text-blue-600 rounded-full text-lg font-bold mb-4">
                 🤖 DIGITAL CONTENT
               </div>
-              <h3 class="text-4xl font-bold text-gray-900 mb-4">Detect AI & Misinformation</h3>
-              <p class="text-xl text-gray-600">From deepfakes to false news—identify synthetic and misleading content</p>
+              <h3 class="text-4xl font-bold text-gray-900 mb-4">Detect AI-Generated Content</h3>
+              <p class="text-xl text-gray-600">Identify deepfakes, synthetic faces, and AI-manipulated images with confidence</p>
             </div>
 
-        <!-- Feature 5: AI Deepfake Detection (Left Image, Right Text) -->
-        <div class="flex flex-col md:flex-row items-center gap-12">
+        <!-- Feature 5: Real vs AI Comparison (Left Image, Right Text) -->
+        <div class="flex flex-col md:flex-row items-center gap-12 mb-24">
           <div class="md:w-1/2 fade-in-left">
             <div class="grid grid-cols-2 gap-4">
               <!-- Real Person -->
@@ -281,8 +281,8 @@
             </div>
           </div>
           <div class="md:w-1/2 fade-in-right">
-            <div class="inline-block px-4 py-2 bg-purple-100 text-purple-600 rounded-full text-sm font-bold mb-4">
-              🤖 AI DEEPFAKE DETECTION
+            <div class="inline-block px-4 py-2 bg-green-100 text-green-600 rounded-full text-sm font-bold mb-4">
+              🤖 AI VS REAL
             </div>
             <h3 class="text-4xl font-bold text-gray-900 mb-6">Spot AI-Generated Faces</h3>
             <p class="text-xl text-gray-700 mb-6">
@@ -305,73 +305,73 @@
           </div>
         </div>
 
-        <!-- Feature 6: False News Detection (Right Image, Left Text) -->
+        <!-- Feature 6: AI Detection Alert (Right Image, Left Text) -->
         <div class="flex flex-col md:flex-row-reverse items-center gap-12 mb-24">
           <div class="md:w-1/2 fade-in-right">
             <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
               <img 
-                src="/assets/images/false_news.png" 
-                alt="False News Detection" 
+                src="/assets/images/ai_flagged_screen.png" 
+                alt="AI Content Detection Alert" 
                 class="w-full h-auto"
               />
             </div>
           </div>
           <div class="md:w-1/2 fade-in-left">
-            <div class="inline-block px-4 py-2 bg-orange-100 text-orange-600 rounded-full text-sm font-bold mb-4">
-              📰 FACT CHECK
+            <div class="inline-block px-4 py-2 bg-red-100 text-red-600 rounded-full text-sm font-bold mb-4">
+              🚨 INSTANT DETECTION
             </div>
-            <h3 class="text-4xl font-bold text-gray-900 mb-6">Detect False News</h3>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">AI Content Flagged Immediately</h3>
             <p class="text-xl text-gray-700 mb-6">
-              Our AI analyzes news content, claims, and statements to determine their veracity. Get instant fact-checking with confidence scores and detailed explanations.
+              The moment you upload an AI-generated image, our system instantly detects it and alerts you with a clear warning and confidence score.
             </p>
             <div class="space-y-3">
               <div class="flex items-start gap-3">
-                <span class="text-2xl">🔍</span>
-                <p class="text-gray-600"><strong>Claim Analysis:</strong> Breaks down complex statements into verifiable facts</p>
+                <span class="text-2xl">⚡</span>
+                <p class="text-gray-600"><strong>Real-Time Detection:</strong> Instant analysis as soon as you upload an image</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🎯</span>
+                <p class="text-gray-600"><strong>Clear Alerts:</strong> Immediate visual warnings for AI-generated content</p>
               </div>
               <div class="flex items-start gap-3">
                 <span class="text-2xl">📊</span>
-                <p class="text-gray-600"><strong>Confidence Scoring:</strong> Provides percentage-based accuracy ratings</p>
-              </div>
-              <div class="flex items-start gap-3">
-                <span class="text-2xl">⚖️</span>
-                <p class="text-gray-600"><strong>Verdict System:</strong> Clear TRUE/FALSE/MOSTLY FALSE classifications</p>
+                <p class="text-gray-600"><strong>Probability Score:</strong> See exact confidence levels for detection accuracy</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Feature 7: Source Verification (Left Image, Right Text) -->
-        <div class="flex flex-col md:flex-row items-center gap-12 mb-24">
+        <!-- Feature 7: Detailed Analysis (Left Image, Right Text) -->
+        <div class="flex flex-col md:flex-row items-center gap-12">
           <div class="md:w-1/2 fade-in-left">
             <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
               <img 
-                src="/assets/images/false_news_source_check.png" 
-                alt="Source Verification" 
+                src="/assets/images/ai_flagged_analysis.png" 
+                alt="Detailed AI Analysis" 
                 class="w-full h-auto"
               />
             </div>
           </div>
           <div class="md:w-1/2 fade-in-right">
-            <div class="inline-block px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-bold mb-4">
-              🔗 SOURCE VERIFICATION
+            <div class="inline-block px-4 py-2 bg-purple-100 text-purple-600 rounded-full text-sm font-bold mb-4">
+              🔬 DEEP ANALYSIS
             </div>
-            <h3 class="text-4xl font-bold text-gray-900 mb-6">Verify Your Sources</h3>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Comprehensive Detection Report</h3>
             <p class="text-xl text-gray-700 mb-6">
-              Get detailed source analysis with credibility ratings, evidence breakdown, and comprehensive fact-checking reports from trusted organizations.
+              Get detailed insights into what types of AI manipulation were detected, with example comparisons and multi-model analysis results.
             </p>
             <div class="space-y-3">
               <div class="flex items-start gap-3">
-                <span class="text-2xl">📚</span>
-                <p class="text-gray-600"><strong>Source Analysis:</strong> Evaluates credibility of news sources and publications</p>
+                <span class="text-2xl">🧠</span>
+                <p class="text-gray-600"><strong>Multi-Model Analysis:</strong> Multiple AI models verify the detection independently</p>
               </div>
               <div class="flex items-start gap-3">
-                <span class="text-2xl">🛡️</span>
-                <p class="text-gray-600"><strong>Evidence Review:</strong> Cross-references claims with multiple reliable sources</p>
+                <span class="text-2xl">🎭</span>
+                <p class="text-gray-600"><strong>Detection Types:</strong> Identifies deepfakes, face swaps, and synthetic media</p>
               </div>
               <div class="flex items-start gap-3">
-                <span class="text-2xl">⭐</span>
-                <p class="text-gray-600"><strong>Credibility Scoring:</strong> Rates source reliability from high to low confidence</p>
+                <span class="text-2xl">📸</span>
+                <p class="text-gray-600"><strong>Visual Examples:</strong> Side-by-side comparisons of real vs AI-generated content</p>
               </div>
             </div>
           </div>

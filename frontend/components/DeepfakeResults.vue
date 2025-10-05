@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-white rounded-3xl shadow-2xl p-8 border-4 border-red-500">
+  <div class="mt-8 mx-4 bg-white rounded-3xl shadow-2xl overflow-hidden p-6 md:p-8">
     <!-- Alert Header -->
-    <div class="text-center mb-8">
+    <div class="text-center mb-8 border-4 border-red-500 rounded-2xl p-6">
       <div class="inline-flex items-center justify-center w-24 h-24 bg-red-100 rounded-full mb-4 animate-pulse">
         <span class="text-5xl">🤖</span>
       </div>
@@ -14,8 +14,11 @@
       </div>
     </div>
 
+    <!-- Main Content Wrapper -->
+    <div class="w-full mx-auto flex flex-col gap-6">
+
     <!-- Warning Message -->
-    <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-xl mb-8">
+    <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-xl">
       <div class="flex items-start">
         <span class="text-3xl mr-3">⚠️</span>
         <div>
@@ -25,25 +28,92 @@
       </div>
     </div>
 
-    <!-- Confidence Level -->
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold text-gray-900 mb-4">📊 Detection Confidence</h3>
-      <div class="flex items-center gap-4">
-        <div class="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
-          <div 
-            class="h-full rounded-full transition-all duration-1000 ease-out"
-            :class="confidenceBarColor"
-            :style="{ width: `${deepfakeData.probability * 100}%` }"
-          ></div>
+    <!-- What We Detect -->
+    <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 border-2 border-purple-200">
+      <h3 class="text-xl font-semibold text-gray-900 mb-4">🔍 What We Detect</h3>
+      <p class="text-gray-700 mb-4">Our AI analyzes images for various types of synthetic and manipulated content:</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">🤖</span>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-1">AI-Generated Faces</h4>
+              <p class="text-sm text-gray-600">Synthetic faces created by GANs, diffusion models, and other generative AI</p>
+            </div>
+          </div>
         </div>
-        <span class="text-lg font-bold" :class="confidenceTextColor">
-          {{ confidenceLevelText }}
-        </span>
+        
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">🎭</span>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-1">Hyperrealistic Face Swaps</h4>
+              <p class="text-sm text-gray-600">Deepfake face replacements and identity manipulations</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">✨</span>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-1">Digital Artifacts</h4>
+              <p class="text-sm text-gray-600">Unnatural patterns, inconsistencies, and generation signatures</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-xl p-4 shadow-sm">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">🖼️</span>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-1">Synthetic Media</h4>
+              <p class="text-sm text-gray-600">AI-generated images, scenes, and manipulated photographs</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example Comparison -->
+      <div class="mt-6">
+        <h4 class="font-semibold text-gray-900 mb-3 text-center">📸 Example Comparison</h4>
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Real Person -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <img 
+              src="/assets/images/real_person.png" 
+              alt="Real Person" 
+              class="w-full h-auto"
+            />
+            <div class="p-3 bg-green-50 text-center">
+              <span class="inline-block px-3 py-1 bg-green-500 text-white rounded-full text-sm font-bold">
+                ✅ REAL
+              </span>
+              <p class="text-xs text-gray-600 mt-2">Authentic photograph</p>
+            </div>
+          </div>
+          
+          <!-- AI Generated -->
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <img 
+              src="/assets/images/ai_person.png" 
+              alt="AI Generated Person" 
+              class="w-full h-auto"
+            />
+            <div class="p-3 bg-red-50 text-center">
+              <span class="inline-block px-3 py-1 bg-red-500 text-white rounded-full text-sm font-bold">
+                ⚠️ AI GENERATED
+              </span>
+              <p class="text-xs text-gray-600 mt-2">Synthetic face</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Model Results -->
-    <div class="mb-8">
+    <div>
       <h3 class="text-xl font-semibold text-gray-900 mb-4">🔬 Individual Model Results</h3>
       <p class="text-sm text-gray-600 mb-4">Results from {{ deepfakeData.per_model_results.length }} different AI detection models:</p>
       
@@ -77,7 +147,7 @@
     </div>
 
     <!-- Average Score -->
-    <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 mb-8">
+    <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-lg font-semibold text-purple-900 mb-1">📈 Average Detection Score</h3>
@@ -93,7 +163,7 @@
     </div>
 
     <!-- Info Section -->
-    <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-xl mb-8">
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-xl">
       <div class="flex items-start">
         <span class="text-2xl mr-3">💡</span>
         <div>
@@ -108,27 +178,21 @@
       </div>
     </div>
 
-    <!-- Actions -->
-    <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-      <button 
+    <!-- Reset Button -->
+    <div class="flex justify-center mt-8">
+      <button
         @click="$emit('reset')"
-        class="flex-1 sm:flex-none px-8 py-4 bg-purple-600 text-white text-lg font-semibold rounded-full hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+        class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
       >
-        🔄 Try Another Image
-      </button>
-      <button 
-        @click="downloadReport"
-        class="flex-1 sm:flex-none px-8 py-4 bg-white text-purple-600 border-2 border-purple-600 text-lg font-semibold rounded-full hover:bg-purple-50 transition-all duration-300"
-      >
-        📥 Download Report
+        🔄 Check Another Item
       </button>
     </div>
+
+    </div> <!-- End Main Content Wrapper -->
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
 const props = defineProps({
   deepfakeData: {
     type: Object,
@@ -137,51 +201,6 @@ const props = defineProps({
 })
 
 defineEmits(['reset'])
-
-const confidenceBarColor = computed(() => {
-  const prob = props.deepfakeData.probability
-  if (prob > 0.75) return 'bg-red-500'
-  if (prob > 0.5) return 'bg-orange-500'
-  return 'bg-yellow-500'
-})
-
-const confidenceTextColor = computed(() => {
-  const prob = props.deepfakeData.probability
-  if (prob > 0.75) return 'text-red-600'
-  if (prob > 0.5) return 'text-orange-600'
-  return 'text-yellow-600'
-})
-
-const confidenceLevelText = computed(() => {
-  const level = props.deepfakeData.confidence_level
-  if (level === 'high') return 'HIGH'
-  if (level === 'medium') return 'MEDIUM'
-  return 'LOW'
-})
-
-const downloadReport = () => {
-  const report = {
-    timestamp: new Date().toISOString(),
-    detection: 'AI-Generated Content',
-    probability: props.deepfakeData.probability,
-    confidence_level: props.deepfakeData.confidence_level,
-    average_probability: props.deepfakeData.average_probability,
-    per_model_results: props.deepfakeData.per_model_results,
-    message: props.deepfakeData.message,
-    warning: props.deepfakeData.warning
-  }
-  
-  const dataStr = JSON.stringify(report, null, 2)
-  const dataBlob = new Blob([dataStr], { type: 'application/json' })
-  const url = URL.createObjectURL(dataBlob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `deepfake-detection-report-${Date.now()}.json`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
 </script>
 
 <style scoped>
