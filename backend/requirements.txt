@@ -37,3 +37,4 @@ albumentations
 kaggle
 pandas
 tqdm
+seaborn

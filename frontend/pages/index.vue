@@ -75,7 +75,7 @@
       <div class="max-w-7xl mx-auto px-8">
         <div class="text-center mb-20 fade-in-up">
           <h2 class="text-5xl font-bold text-gray-900 mb-4">See It In Action</h2>
-          <p class="text-xl text-gray-600">Watch how 4real? protects you from counterfeits in real-time</p>
+          <p class="text-xl text-gray-600">Watch how 4real? protects you from counterfeits, deepfakes, and more in real-time.</p>
         </div>
 
         <!-- Physical Items Detection Section -->
