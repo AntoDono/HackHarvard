@@ -120,7 +120,7 @@
         </div>
 
         <!-- Loading Overlay -->
-        <div v-if="isProcessing" class="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center">
+        <div v-if="isProcessing" class="absolute inset-0 bg-black flex items-center justify-center">
           <LoadingAnimation :message="processingStep" />
         </div>
       </div>

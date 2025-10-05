@@ -868,7 +868,7 @@ onUnmounted(() => {
     min-height: 140vh !important;
     min-width: 140vw !important;
     z-index: 9999 !important;
-    background: rgba(0, 0, 0, 0.95) !important;
+    background: rgba(0, 0, 0, 1) !important;
   }
 }
 
