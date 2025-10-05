@@ -82,13 +82,13 @@ class DeepfakeInference:
         except Exception as e:
             raise ValueError(f"Error preprocessing image {image_path}: {str(e)}")
     
-    def is_deepfake(self, image_path, confidence_threshold=0.5):
+    def is_deepfake(self, image_path, confidence_threshold=0.6):
         """
         Determine if an image is a deepfake
         
         Args:
             image_path (str): Path to the image file
-            confidence_threshold (float): Threshold for classification (default: 0.5)
+            confidence_threshold (float): Threshold for classification (default: 0.6)
             
         Returns:
             dict: {
@@ -131,7 +131,7 @@ class DeepfakeInference:
             'raw_confidence': confidence if is_deepfake else 1.0 - confidence
         }
     
-    def predict_batch(self, image_paths, confidence_threshold=0.5):
+    def predict_batch(self, image_paths, confidence_threshold=0.6):
         """
         Predict on multiple images
         
@@ -162,14 +162,14 @@ class DeepfakeInference:
 
 INFERENCE = None
 # Convenience function for simple usage
-def is_deepfake(image_path, model_path="ai_detection/deepfake_model.pth", confidence_threshold=0.5):
+def is_deepfake(image_path, model_path="ai_detection/deepfake_model.pth", confidence_threshold=0.6):
     """
     Simple function to check if an image is a deepfake
     
     Args:
         image_path (str): Path to the image file
         model_path (str): Path to the trained model file
-        confidence_threshold (float): Threshold for classification
+        confidence_threshold (float): Threshold for classification (default: 0.6)
         
     Returns:
         dict: Prediction results
