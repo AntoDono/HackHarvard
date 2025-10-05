@@ -463,6 +463,55 @@
         </div>
           </div>
         </div>
+
+        <!-- Background Check Section -->
+        <div class="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-32 py-16">
+          <div class="max-w-7xl mx-auto px-8">
+            <div class="text-center mb-16">
+              <div class="inline-block px-6 py-3 bg-green-100 text-green-600 rounded-full text-lg font-bold mb-4">
+                👤 BACKGROUND CHECK
+              </div>
+              <h3 class="text-4xl font-bold text-gray-900 mb-4">Verify People & Reputations</h3>
+              <p class="text-xl text-gray-600">Research individuals, check online presence, and discover public records and controversies</p>
+            </div>
+
+        <!-- Feature: Background Check (Right Image, Left Text) -->
+        <div class="flex flex-col md:flex-row-reverse items-center gap-12 mb-24">
+          <div class="md:w-1/2 fade-in-right">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+              <img 
+                src="/assets/images/background_check.png" 
+                alt="Background Check" 
+                class="w-full h-auto"
+              />
+            </div>
+          </div>
+          <div class="md:w-1/2 fade-in-left">
+            <div class="inline-block px-4 py-2 bg-green-100 text-green-600 rounded-full text-sm font-bold mb-4">
+              🔍 PEOPLE VERIFICATION
+            </div>
+            <h3 class="text-4xl font-bold text-gray-900 mb-6">Know Who You're Dealing With</h3>
+            <p class="text-xl text-gray-700 mb-6">
+              Our AI-powered background check searches across the web to find public records, social media presence, controversies, and reputation information about individuals.
+            </p>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🌐</span>
+                <p class="text-gray-600"><strong>Web Intelligence:</strong> Searches news articles, social media, and public databases</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">⚠️</span>
+                <p class="text-gray-600"><strong>Risk Detection:</strong> Identifies controversies, legal issues, and red flags</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">📋</span>
+                <p class="text-gray-600"><strong>Comprehensive Reports:</strong> Get detailed summaries with sources and credibility scores</p>
+              </div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
       </div>
     </div>
 
